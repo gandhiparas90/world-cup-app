@@ -6,6 +6,8 @@ import 'seed_data.dart';
 class MatchRepository {
   const MatchRepository.seeded();
 
+  List<Team> get teams => SeedData.teams;
+
   List<WorldCupMatch> get matches => SeedData.matches;
 
   Team teamById(String id) {

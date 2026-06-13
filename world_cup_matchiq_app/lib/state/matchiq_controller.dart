@@ -2,32 +2,43 @@ import 'package:flutter/foundation.dart';
 
 import '../data/match_repository.dart';
 import '../data/saved_prediction_repository.dart';
+import '../data/user_profile_repository.dart';
 import '../models/player.dart';
 import '../models/saved_prediction.dart';
 import '../models/team.dart';
+import '../models/user_profile.dart';
 import '../models/world_cup_match.dart';
 
 class MatchIqController extends ChangeNotifier {
   MatchIqController({
     required this.matchRepository,
     required this.savedPredictionRepository,
+    required this.userProfileRepository,
   });
 
   final MatchRepository matchRepository;
   final SavedPredictionRepository savedPredictionRepository;
+  final UserProfileRepository userProfileRepository;
 
   var _isLoading = true;
   var _selectedIndex = 0;
   List<SavedPrediction> _savedPredictions = [];
+  UserProfile? _profile;
 
   bool get isLoading => _isLoading;
 
   int get selectedIndex => _selectedIndex;
 
+  List<Team> get teams => matchRepository.teams;
+
   List<WorldCupMatch> get matches => matchRepository.matches;
 
   List<SavedPrediction> get savedPredictions =>
       List.unmodifiable(_savedPredictions);
+
+  UserProfile? get profile => _profile;
+
+  bool get hasProfile => _profile != null;
 
   Team teamById(String id) {
     return matchRepository.teamById(id);
@@ -42,6 +53,7 @@ class MatchIqController extends ChangeNotifier {
     notifyListeners();
 
     _savedPredictions = await savedPredictionRepository.load();
+    _profile = await userProfileRepository.load();
     _isLoading = false;
     notifyListeners();
   }
@@ -57,13 +69,25 @@ class MatchIqController extends ChangeNotifier {
   Future<void> savePrediction(SavedPrediction prediction) async {
     await savedPredictionRepository.save(prediction);
     _savedPredictions = await savedPredictionRepository.load();
-    _selectedIndex = 1;
+    _selectedIndex = 0;
     notifyListeners();
   }
 
   Future<void> clearSavedPredictions() async {
     await savedPredictionRepository.clear();
     _savedPredictions = [];
+    notifyListeners();
+  }
+
+  Future<void> saveProfile(UserProfile profile) async {
+    await userProfileRepository.save(profile);
+    _profile = profile;
+    notifyListeners();
+  }
+
+  Future<void> resetProfile() async {
+    await userProfileRepository.clear();
+    _profile = null;
     notifyListeners();
   }
 }

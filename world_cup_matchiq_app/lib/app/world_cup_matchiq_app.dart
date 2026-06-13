@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../data/match_repository.dart';
 import '../data/saved_prediction_repository.dart';
+import '../data/user_profile_repository.dart';
 import '../screens/matches_screen.dart';
 import '../screens/saved_predictions_screen.dart';
 import '../state/matchiq_controller.dart';
@@ -12,11 +13,13 @@ class WorldCupMatchIqEntryPoint extends StatelessWidget {
   const WorldCupMatchIqEntryPoint({
     this.matchRepository = const MatchRepository.seeded(),
     this.savedPredictionRepository,
+    this.userProfileRepository,
     super.key,
   });
 
   final MatchRepository matchRepository;
   final SavedPredictionRepository? savedPredictionRepository;
+  final UserProfileRepository? userProfileRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +28,8 @@ class WorldCupMatchIqEntryPoint extends StatelessWidget {
         matchRepository: matchRepository,
         savedPredictionRepository:
             savedPredictionRepository ?? InMemorySavedPredictionRepository(),
+        userProfileRepository:
+            userProfileRepository ?? InMemoryUserProfileRepository(),
       )..load(),
       child: MaterialApp(
         title: 'World Cup MatchIQ',
