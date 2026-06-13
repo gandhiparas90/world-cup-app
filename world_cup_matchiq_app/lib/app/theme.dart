@@ -1,20 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flex_color_scheme/flex_color_scheme.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class MatchIqTheme {
   const MatchIqTheme._();
 
   static ThemeData light() {
-    final base = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF0B7A5B),
-      primary: const Color(0xFF0B7A5B),
-      secondary: const Color(0xFF1D4ED8),
-      tertiary: const Color(0xFFEAB308),
+    final textTheme = GoogleFonts.interTextTheme();
+
+    final theme = FlexThemeData.light(
+      scheme: FlexScheme.greenM3,
+      surfaceMode: FlexSurfaceMode.highScaffoldLowSurface,
+      blendLevel: 3,
+      subThemesData: const FlexSubThemesData(
+        defaultRadius: 8,
+        elevatedButtonRadius: 8,
+        filledButtonRadius: 8,
+        outlinedButtonRadius: 8,
+        inputDecoratorRadius: 8,
+        cardRadius: 8,
+        navigationBarSelectedLabelSchemeColor: SchemeColor.primary,
+        navigationBarUnselectedLabelSchemeColor: SchemeColor.onSurfaceVariant,
+        navigationBarSelectedIconSchemeColor: SchemeColor.primary,
+        navigationBarUnselectedIconSchemeColor: SchemeColor.onSurfaceVariant,
+      ),
+      useMaterial3: true,
+      scaffoldBackground: const Color(0xFFF7FAFC),
+      fontFamily: textTheme.bodyMedium?.fontFamily,
+      textTheme: textTheme,
     );
 
-    return ThemeData(
-      colorScheme: base,
-      useMaterial3: true,
-      scaffoldBackgroundColor: const Color(0xFFF7FAFC),
+    return theme.copyWith(
       appBarTheme: const AppBarTheme(
         centerTitle: false,
         elevation: 0,
