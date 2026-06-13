@@ -17,13 +17,13 @@ The design spec lives at:
 
 ## Current Checkpoint
 
-Stage 2.4 is the current runnable Flutter checkpoint:
+Stage 2.5 is the current runnable Flutter checkpoint:
 
 - Personalized Home screen that starts with profile setup instead of a dense fixture list.
 - Full local catalog for all 48 World Cup teams, Groups A-L, and all 72 group-stage fixtures.
 - Fixtures screen with local kickoff conversion, US viewing metadata, team notes, completed-result labels, and prototype predictions.
 - Teams screen with searchable team catalog sourced from the same local team table as the Profile favorite-team dropdown.
-- Match Detail screen with scoreline estimates, scorer likelihoods, team context, and US viewing info when a profile exists.
+- Match Detail screen with local win/draw/loss percentages, scoreline estimates, "Why this prediction?" factors, scorer likelihoods, team context, and US viewing info when a profile exists.
 - Profile screen with local Hive-backed display name, country, time zone, favorite team, and saved predictions.
 - Player/scorer records remain partial by design until a roster/stat source is connected.
 
@@ -55,13 +55,13 @@ Do not add real API keys to Dart source, screenshots, docs, commits, or GitHub
 issues. The Flutter app should call a local/backend proxy that reads this env
 file; client-side mobile or web builds should not contain the key.
 
-Verified Stage 2.4 commands:
+Verified Stage 2.5 commands:
 
 ```bash
 /Users/parasgandhi/Project/temp/flutter/bin/flutter analyze
 /Users/parasgandhi/Project/temp/flutter/bin/flutter test
-/Users/parasgandhi/Project/temp/flutter/bin/flutter test tool/progress_screenshots.dart --update-goldens --dart-define=SCREENSHOT_STAGE=stage2_4
+/Users/parasgandhi/Project/temp/flutter/bin/flutter test tool/progress_screenshots.dart --update-goldens --dart-define=SCREENSHOT_STAGE=stage2_5
 /Users/parasgandhi/Project/temp/flutter/bin/flutter build web --no-wasm-dry-run
 ```
 
-Stage 2.4 screenshots are stored in `docs/screenshots/stage2_4/`.
+Stage 2.5 screenshots are stored in `docs/screenshots/stage2_5/`.

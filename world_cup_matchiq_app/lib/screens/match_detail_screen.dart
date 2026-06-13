@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../models/player.dart';
+import '../models/prediction_result.dart';
 import '../models/saved_prediction.dart';
 import '../models/team.dart';
 import '../models/user_profile.dart';
 import '../models/world_cup_match.dart';
+import '../services/prediction_engine.dart';
 import '../utils/match_viewing.dart';
 import '../widgets/prediction_summary.dart';
 import '../widgets/scorer_likelihood_list.dart';
@@ -29,7 +31,12 @@ class MatchDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final prediction = estimatePrototypePrediction(home, away);
+    final prediction = const PredictionEngine().predict(
+      match: match,
+      home: home,
+      away: away,
+      players: players,
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text('${home.code} vs ${away.code}')),
@@ -76,9 +83,11 @@ class MatchDetailScreen extends StatelessWidget {
             awayValue: away.style,
           ),
           const SizedBox(height: 12),
-          PredictionSummary(home: home, away: away),
+          PredictionSummary(prediction: prediction, home: home, away: away),
           const SizedBox(height: 12),
-          ScorerLikelihoodList(players: players),
+          _PredictionFactors(prediction: prediction),
+          const SizedBox(height: 12),
+          ScorerLikelihoodList(scorers: prediction.scorers),
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: () async {
@@ -99,6 +108,53 @@ class MatchDetailScreen extends StatelessWidget {
             label: const Text('Save prediction'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PredictionFactors extends StatelessWidget {
+  const _PredictionFactors({required this.prediction});
+
+  final PredictionResult prediction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Why this prediction?',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 10),
+            for (final factor in prediction.factors)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${factor.label}: ${factor.value}',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      factor.explanation,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

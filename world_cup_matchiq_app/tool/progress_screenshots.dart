@@ -13,7 +13,7 @@ import 'package:world_cup_matchiq/models/user_profile.dart';
 import 'package:world_cup_matchiq/screens/match_detail_screen.dart';
 import 'package:world_cup_matchiq/screens/profile_screen.dart';
 import 'package:world_cup_matchiq/screens/teams_screen.dart';
-import 'package:world_cup_matchiq/widgets/prediction_summary.dart';
+import 'package:world_cup_matchiq/services/prediction_engine.dart';
 
 const screenshotStage = String.fromEnvironment(
   'SCREENSHOT_STAGE',
@@ -94,6 +94,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    if (screenshotStage == 'stage2_5') {
+      await tester.scrollUntilVisible(
+        find.text('Why this prediction?'),
+        240,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.pumpAndSettle();
+    }
+
     await expectLater(
       find.byType(MaterialApp),
       matchesGoldenFile(
@@ -138,7 +147,12 @@ void main() {
     final match = SeedData.matchById('bra-mar');
     final home = SeedData.teamById(match.homeTeamId);
     final away = SeedData.teamById(match.awayTeamId);
-    final prediction = estimatePrototypePrediction(home, away);
+    final prediction = const PredictionEngine().predict(
+      match: match,
+      home: home,
+      away: away,
+      players: SeedData.playersForMatch(match.id),
+    );
 
     await tester.pumpWidget(
       MaterialApp(

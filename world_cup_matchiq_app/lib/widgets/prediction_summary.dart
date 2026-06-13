@@ -1,65 +1,22 @@
 import 'package:flutter/material.dart';
 
+import '../models/prediction_result.dart';
 import '../models/team.dart';
 
-class PrototypePrediction {
-  const PrototypePrediction({
-    required this.scoreline,
-    required this.confidence,
-    required this.homeExpectedGoals,
-    required this.awayExpectedGoals,
-    required this.calculationNote,
+class PredictionSummary extends StatelessWidget {
+  const PredictionSummary({
+    required this.prediction,
+    required this.home,
+    required this.away,
+    super.key,
   });
 
-  final String scoreline;
-  final String confidence;
-  final double homeExpectedGoals;
-  final double awayExpectedGoals;
-  final String calculationNote;
-}
-
-PrototypePrediction estimatePrototypePrediction(Team home, Team away) {
-  final homeRaw = _expectedGoals(home, away);
-  final awayRaw = _expectedGoals(away, home);
-  final homeScore = homeRaw.clamp(0.0, 4.0).round();
-  final awayScore = awayRaw.clamp(0.0, 4.0).round();
-  final ratingGap =
-      (home.attackRating + home.defenseRating + home.formPoints) -
-      (away.attackRating + away.defenseRating + away.formPoints);
-  final confidence = ratingGap.abs() > 8
-      ? 'High'
-      : ratingGap.abs() > 3
-      ? 'Medium'
-      : 'Low';
-
-  return PrototypePrediction(
-    scoreline: '${home.name} $homeScore-$awayScore ${away.name}',
-    confidence: confidence,
-    homeExpectedGoals: homeRaw.clamp(0.0, 4.0),
-    awayExpectedGoals: awayRaw.clamp(0.0, 4.0),
-    calculationNote:
-        'Expected goals blend recent scoring, opponent concession rate, attack-vs-defense ratings, and form gap.',
-  );
-}
-
-double _expectedGoals(Team attack, Team defense) {
-  final scoringBase =
-      (attack.avgGoalsFor * 0.65) + (defense.avgGoalsAgainst * 0.35);
-  final ratingAdjustment = (attack.attackRating - defense.defenseRating) / 50;
-  final formAdjustment = (attack.formPoints - defense.formPoints) / 30;
-  return scoringBase + ratingAdjustment + formAdjustment;
-}
-
-class PredictionSummary extends StatelessWidget {
-  const PredictionSummary({required this.home, required this.away, super.key});
-
+  final PredictionResult prediction;
   final Team home;
   final Team away;
 
   @override
   Widget build(BuildContext context) {
-    final prediction = estimatePrototypePrediction(home, away);
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -80,9 +37,9 @@ class PredictionSummary extends StatelessWidget {
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 8),
-            Text(
-              '${prediction.confidence} confidence prototype estimate. Not betting odds.',
-            ),
+            Text('${prediction.confidence} confidence prototype estimate.'),
+            const SizedBox(height: 12),
+            _OutcomeRow(prediction: prediction, home: home, away: away),
             const SizedBox(height: 12),
             Text(
               '${home.code} xG ${prediction.homeExpectedGoals.toStringAsFixed(1)} - ${away.code} xG ${prediction.awayExpectedGoals.toStringAsFixed(1)}',
@@ -92,11 +49,101 @@ class PredictionSummary extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              prediction.calculationNote,
+              prediction.disclaimer,
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _OutcomeRow extends StatelessWidget {
+  const _OutcomeRow({
+    required this.prediction,
+    required this.home,
+    required this.away,
+  });
+
+  final PredictionResult prediction;
+  final Team home;
+  final Team away;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Win probability',
+          style: Theme.of(
+            context,
+          ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _ProbabilityPill(
+                label: home.code,
+                value: prediction.homeWinPercent,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _ProbabilityPill(
+                label: 'Draw',
+                value: prediction.drawPercent,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _ProbabilityPill(
+                label: away.code,
+                value: prediction.awayWinPercent,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _ProbabilityPill extends StatelessWidget {
+  const _ProbabilityPill({required this.label, required this.value});
+
+  final String label;
+  final int value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: [
+          Text(
+            '$value%',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSecondaryContainer,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSecondaryContainer,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -72,6 +72,14 @@ void main() {
 
     expect(find.text('Prototype scoreline'), findsOneWidget);
     expect(find.textContaining('Not betting odds'), findsOneWidget);
+    expect(find.text('Win probability'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Why this prediction?'),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.text('Why this prediction?'), findsOneWidget);
+    expect(find.textContaining('Expected goals:'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Likely scorers'),
       200,

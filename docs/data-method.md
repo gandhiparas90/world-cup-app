@@ -27,13 +27,22 @@ ingested JSON feed without rewriting screens.
 
 ## Prototype Prediction Inputs
 
-Team scoreline estimates use:
+Team outcome and scoreline estimates use:
 
 - Recent goals for
 - Opponent recent goals against
 - Local attack rating
 - Local defense rating
 - Recent form points
+- Listed home-side display adjustment
+
+The app converts those local inputs into:
+
+- win/draw/loss percentages
+- expected goals
+- predicted scoreline
+- confidence label
+- factor explanations shown under "Why this prediction?"
 
 Player scorer estimates use:
 
@@ -41,6 +50,13 @@ Player scorer estimates use:
 - Recent goal involvement
 - Likely starter status
 - Availability factor
+- Team expected-goals context
 
 These estimates are intentionally labeled as prototype predictions. They are
 not betting odds and should not be presented as official probabilities.
+
+## AI Boundary
+
+Stage 2.5 still does not call Gemini. The local engine creates the prediction
+and explanation factors. The future Gemini stage should receive this structured
+result and generate a readable match preview without inventing new statistics.
