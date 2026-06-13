@@ -34,6 +34,27 @@ cd world_cup_matchiq_app
 /Users/parasgandhi/Project/temp/flutter/bin/flutter run -d chrome
 ```
 
+## Local AI API Key
+
+The repo is public, so API keys must stay in ignored local env files.
+
+```bash
+cd world_cup_matchiq_app
+cp .env.example .env.local
+```
+
+Then edit `.env.local` locally:
+
+```text
+GEMINI_API_KEY=your_google_ai_studio_key
+AI_PROVIDER=gemini
+AI_MODEL=gemini-3.5-flash
+```
+
+Do not add real API keys to Dart source, screenshots, docs, commits, or GitHub
+issues. The Flutter app should call a local/backend proxy that reads this env
+file; client-side mobile or web builds should not contain the key.
+
 Verified Stage 2.4 commands:
 
 ```bash

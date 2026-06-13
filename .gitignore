@@ -1,0 +1,5 @@
+# Local API keys and secrets
+.env
+.env.*
+!.env.example
+
