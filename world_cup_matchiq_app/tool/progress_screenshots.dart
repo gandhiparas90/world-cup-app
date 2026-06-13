@@ -11,6 +11,11 @@ import 'package:world_cup_matchiq/screens/match_detail_screen.dart';
 import 'package:world_cup_matchiq/screens/saved_predictions_screen.dart';
 import 'package:world_cup_matchiq/widgets/prediction_summary.dart';
 
+const screenshotStage = String.fromEnvironment(
+  'SCREENSHOT_STAGE',
+  defaultValue: 'stage2',
+);
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -28,7 +33,7 @@ void main() {
     binding.platformDispatcher.clearTextScaleFactorTestValue();
   });
 
-  testWidgets('captures Stage 1 matches dashboard', (tester) async {
+  testWidgets('captures $screenshotStage matches dashboard', (tester) async {
     await _setPhoneViewport(tester);
     await tester.pumpWidget(const WorldCupMatchIqEntryPoint());
     await tester.pumpAndSettle();
@@ -36,12 +41,12 @@ void main() {
     await expectLater(
       find.byType(WorldCupMatchIqEntryPoint),
       matchesGoldenFile(
-        '../../docs/screenshots/stage1/01_matches_dashboard.png',
+        '../../docs/screenshots/$screenshotStage/01_matches_dashboard.png',
       ),
     );
   });
 
-  testWidgets('captures Stage 1 match detail', (tester) async {
+  testWidgets('captures $screenshotStage match detail', (tester) async {
     await _setPhoneViewport(tester);
     await tester.pumpWidget(
       MaterialApp(
@@ -60,11 +65,13 @@ void main() {
 
     await expectLater(
       find.byType(MaterialApp),
-      matchesGoldenFile('../../docs/screenshots/stage1/02_match_detail.png'),
+      matchesGoldenFile(
+        '../../docs/screenshots/$screenshotStage/02_match_detail.png',
+      ),
     );
   });
 
-  testWidgets('captures Stage 1 saved predictions', (tester) async {
+  testWidgets('captures $screenshotStage saved predictions', (tester) async {
     await _setPhoneViewport(tester);
     final match = SeedData.matchById('arg-fra');
     final home = SeedData.teamById(match.homeTeamId);
@@ -97,7 +104,7 @@ void main() {
     await expectLater(
       find.byType(MaterialApp),
       matchesGoldenFile(
-        '../../docs/screenshots/stage1/03_saved_predictions.png',
+        '../../docs/screenshots/$screenshotStage/03_saved_predictions.png',
       ),
     );
   });
