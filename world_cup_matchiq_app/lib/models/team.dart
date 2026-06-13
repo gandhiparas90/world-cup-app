@@ -4,8 +4,11 @@ class Team {
     required this.name,
     required this.code,
     required this.flagLabel,
+    required this.group,
     required this.manager,
     required this.style,
+    required this.formSummary,
+    required this.teamNews,
     required this.attackRating,
     required this.defenseRating,
     required this.formPoints,
@@ -17,8 +20,11 @@ class Team {
   final String name;
   final String code;
   final String flagLabel;
+  final String group;
   final String manager;
   final String style;
+  final String formSummary;
+  final String teamNews;
   final int attackRating;
   final int defenseRating;
   final int formPoints;

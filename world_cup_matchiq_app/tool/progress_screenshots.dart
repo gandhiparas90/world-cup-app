@@ -53,10 +53,10 @@ void main() {
         debugShowCheckedModeBanner: false,
         theme: MatchIqTheme.light(),
         home: MatchDetailScreen(
-          match: SeedData.matchById('arg-fra'),
-          home: SeedData.teamById('arg'),
-          away: SeedData.teamById('fra'),
-          players: SeedData.playersForMatch('arg-fra'),
+          match: SeedData.matchById('bra-mar'),
+          home: SeedData.teamById('bra'),
+          away: SeedData.teamById('mar'),
+          players: SeedData.playersForMatch('bra-mar'),
           onSavePrediction: (_) async {},
         ),
       ),
@@ -73,7 +73,7 @@ void main() {
 
   testWidgets('captures $screenshotStage saved predictions', (tester) async {
     await _setPhoneViewport(tester);
-    final match = SeedData.matchById('arg-fra');
+    final match = SeedData.matchById('bra-mar');
     final home = SeedData.teamById(match.homeTeamId);
     final away = SeedData.teamById(match.awayTeamId);
     final prediction = estimatePrototypePrediction(home, away);

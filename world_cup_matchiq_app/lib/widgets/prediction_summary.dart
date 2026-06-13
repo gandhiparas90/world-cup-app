@@ -6,17 +6,21 @@ class PrototypePrediction {
   const PrototypePrediction({
     required this.scoreline,
     required this.confidence,
+    required this.homeExpectedGoals,
+    required this.awayExpectedGoals,
+    required this.calculationNote,
   });
 
   final String scoreline;
   final String confidence;
+  final double homeExpectedGoals;
+  final double awayExpectedGoals;
+  final String calculationNote;
 }
 
 PrototypePrediction estimatePrototypePrediction(Team home, Team away) {
-  final homeRaw =
-      home.avgGoalsFor + ((home.attackRating - away.defenseRating) / 30);
-  final awayRaw =
-      away.avgGoalsFor + ((away.attackRating - home.defenseRating) / 30);
+  final homeRaw = _expectedGoals(home, away);
+  final awayRaw = _expectedGoals(away, home);
   final homeScore = homeRaw.clamp(0.0, 4.0).round();
   final awayScore = awayRaw.clamp(0.0, 4.0).round();
   final ratingGap =
@@ -31,7 +35,19 @@ PrototypePrediction estimatePrototypePrediction(Team home, Team away) {
   return PrototypePrediction(
     scoreline: '${home.name} $homeScore-$awayScore ${away.name}',
     confidence: confidence,
+    homeExpectedGoals: homeRaw.clamp(0.0, 4.0),
+    awayExpectedGoals: awayRaw.clamp(0.0, 4.0),
+    calculationNote:
+        'Expected goals blend recent scoring, opponent concession rate, attack-vs-defense ratings, and form gap.',
   );
+}
+
+double _expectedGoals(Team attack, Team defense) {
+  final scoringBase =
+      (attack.avgGoalsFor * 0.65) + (defense.avgGoalsAgainst * 0.35);
+  final ratingAdjustment = (attack.attackRating - defense.defenseRating) / 50;
+  final formAdjustment = (attack.formPoints - defense.formPoints) / 30;
+  return scoringBase + ratingAdjustment + formAdjustment;
 }
 
 class PredictionSummary extends StatelessWidget {
@@ -65,7 +81,19 @@ class PredictionSummary extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              '${prediction.confidence} confidence estimate based on seeded team ratings.',
+              '${prediction.confidence} confidence prototype estimate. Not betting odds.',
+            ),
+            const SizedBox(height: 12),
+            Text(
+              '${home.code} xG ${prediction.homeExpectedGoals.toStringAsFixed(1)} - ${away.code} xG ${prediction.awayExpectedGoals.toStringAsFixed(1)}',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              prediction.calculationNote,
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         ),

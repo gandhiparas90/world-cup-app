@@ -32,7 +32,17 @@ class ScorerLikelihoodList extends StatelessWidget {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Text('${player.name} - ${player.position}'),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('${player.name} - ${player.position}'),
+                          const SizedBox(height: 2),
+                          Text(
+                            player.news,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
                     ),
                     Text('${_likelihood(player)}%'),
                   ],
@@ -40,7 +50,7 @@ class ScorerLikelihoodList extends StatelessWidget {
               ),
             const SizedBox(height: 8),
             Text(
-              'Prototype likelihoods are based on recent seeded goal involvement, not betting odds.',
+              'Prototype scorer percentages blend threat rating, recent goal involvement, starter status, and availability. They are not betting odds.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -50,8 +60,12 @@ class ScorerLikelihoodList extends StatelessWidget {
   }
 
   int _likelihood(Player player) {
-    final base = player.likelyStarter ? 18 : 10;
-    final involvementBoost = player.goalInvolvement * 3;
-    return (base + involvementBoost).clamp(8, 42);
+    final starterBoost = player.likelyStarter ? 8 : 0;
+    final raw =
+        10 +
+        (player.goalThreatRating * 0.28) +
+        (player.goalInvolvement * 2) +
+        starterBoost;
+    return (raw * player.availabilityFactor).round().clamp(5, 48);
   }
 }

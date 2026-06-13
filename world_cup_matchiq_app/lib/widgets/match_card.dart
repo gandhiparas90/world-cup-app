@@ -46,6 +46,11 @@ class MatchCard extends StatelessWidget {
               Text('${match.stage} - ${match.kickoffLabel}'),
               const SizedBox(height: 4),
               Text(match.venue),
+              const SizedBox(height: 4),
+              Text(
+                '${match.dataUpdatedLabel} - ${match.sourceLabel}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
               const SizedBox(height: 12),
               Text(
                 match.storyline,

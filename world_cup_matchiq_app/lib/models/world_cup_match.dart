@@ -7,6 +7,9 @@ class WorldCupMatch {
     required this.kickoffLabel,
     required this.venue,
     required this.storyline,
+    required this.sourceLabel,
+    required this.sourceUrl,
+    required this.dataUpdatedLabel,
   });
 
   final String id;
@@ -16,4 +19,7 @@ class WorldCupMatch {
   final String kickoffLabel;
   final String venue;
   final String storyline;
+  final String sourceLabel;
+  final String sourceUrl;
+  final String dataUpdatedLabel;
 }

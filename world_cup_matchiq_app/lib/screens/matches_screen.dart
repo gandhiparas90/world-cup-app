@@ -27,14 +27,14 @@ class MatchesScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       children: [
         Text(
-          'Featured fixtures',
+          'Today\'s fixtures',
           style: Theme.of(
             context,
           ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 8),
         Text(
-          'Seeded demo coverage for match previews, predictions, and player-impact analysis.',
+          'Local World Cup snapshot with fixture context, team news, and transparent prototype predictions.',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(height: 16),

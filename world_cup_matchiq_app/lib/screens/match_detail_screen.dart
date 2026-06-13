@@ -33,14 +33,21 @@ class MatchDetailScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            '${home.flagLabel} ${home.name} vs ${away.flagLabel} ${away.name}',
+            '${home.name} vs ${away.name}',
             style: Theme.of(
               context,
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 8),
           Text('${match.stage} - ${match.kickoffLabel} - ${match.venue}'),
+          const SizedBox(height: 4),
+          Text(
+            '${match.dataUpdatedLabel} - ${match.sourceLabel}',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
           const SizedBox(height: 16),
+          _FixtureContext(match: match, home: home, away: away),
+          const SizedBox(height: 12),
           _TeamComparison(
             homeName: home.name,
             awayName: away.name,
@@ -107,6 +114,48 @@ class _TeamComparison extends StatelessWidget {
             Text('$homeName: $homeValue'),
             const SizedBox(height: 8),
             Text('$awayName: $awayValue'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FixtureContext extends StatelessWidget {
+  const _FixtureContext({
+    required this.match,
+    required this.home,
+    required this.away,
+  });
+
+  final WorldCupMatch match;
+  final Team home;
+  final Team away;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Match context',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 12),
+            Text(match.storyline),
+            const SizedBox(height: 12),
+            Text('${home.code}: ${home.formSummary}'),
+            const SizedBox(height: 6),
+            Text('${home.code} news: ${home.teamNews}'),
+            const SizedBox(height: 12),
+            Text('${away.code}: ${away.formSummary}'),
+            const SizedBox(height: 6),
+            Text('${away.code} news: ${away.teamNews}'),
           ],
         ),
       ),
