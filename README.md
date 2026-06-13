@@ -15,3 +15,25 @@ The design spec lives at:
 
 `docs/superpowers/specs/2026-06-13-world-cup-matchiq-design.md`
 
+## Current Checkpoint
+
+Stage 1 is the first runnable Flutter checkpoint:
+
+- Matches screen with seeded World Cup fixtures.
+- Match Detail screen with prototype scoreline and scorer likelihood estimates.
+- Saved Predictions screen with in-memory saved predictions.
+
+Run the app:
+
+```bash
+cd world_cup_matchiq_app
+/Users/parasgandhi/Project/temp/flutter/bin/flutter run -d chrome
+```
+
+Verified Stage 1 commands:
+
+```bash
+/Users/parasgandhi/Project/temp/flutter/bin/flutter analyze
+/Users/parasgandhi/Project/temp/flutter/bin/flutter test
+/Users/parasgandhi/Project/temp/flutter/bin/flutter build web --no-wasm-dry-run
+```
