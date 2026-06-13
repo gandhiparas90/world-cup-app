@@ -75,6 +75,17 @@ void main() {
     expect(find.textContaining('Brazil win'), findsOneWidget);
     expect(find.textContaining('Morocco win'), findsOneWidget);
     await tester.scrollUntilVisible(
+      find.text('AI match preview'),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.text('AI match preview'), findsOneWidget);
+    expect(find.text('Generate AI preview'), findsOneWidget);
+    await tester.tap(find.text('Generate AI preview'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('local signal'), findsOneWidget);
+    expect(find.text('Refresh AI preview'), findsOneWidget);
+    await tester.scrollUntilVisible(
       find.text('Why this prediction?'),
       200,
       scrollable: find.byType(Scrollable).last,

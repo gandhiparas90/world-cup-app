@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../models/ai_match_preview.dart';
 import '../models/player.dart';
 import '../models/prediction_result.dart';
 import '../models/saved_prediction.dart';
 import '../models/team.dart';
 import '../models/user_profile.dart';
 import '../models/world_cup_match.dart';
+import '../services/ai_match_preview_service.dart';
 import '../services/prediction_engine.dart';
 import '../utils/match_viewing.dart';
 import '../widgets/prediction_summary.dart';
@@ -18,6 +20,9 @@ class MatchDetailScreen extends StatelessWidget {
     required this.away,
     required this.players,
     required this.onSavePrediction,
+    required this.aiPreview,
+    required this.isGeneratingAiPreview,
+    required this.onGenerateAiPreview,
     this.profile,
     super.key,
   });
@@ -27,6 +32,9 @@ class MatchDetailScreen extends StatelessWidget {
   final Team away;
   final List<Player> players;
   final Future<void> Function(SavedPrediction prediction) onSavePrediction;
+  final AiMatchPreview? aiPreview;
+  final bool isGeneratingAiPreview;
+  final Future<void> Function(AiPreviewRequest request) onGenerateAiPreview;
   final UserProfile? profile;
 
   @override
@@ -36,6 +44,17 @@ class MatchDetailScreen extends StatelessWidget {
       home: home,
       away: away,
       players: players,
+    );
+    final matchViewingLine = profile == null
+        ? '${match.broadcastChannel} coverage listed at ${match.kickoffLabel}'
+        : viewingLine(match, profile!.countryCode, profile!.timezone);
+    final aiPreviewRequest = AiPreviewRequest(
+      match: match,
+      home: home,
+      away: away,
+      players: players,
+      prediction: prediction,
+      viewingLine: matchViewingLine,
     );
 
     return Scaffold(
@@ -76,6 +95,12 @@ class MatchDetailScreen extends StatelessWidget {
           ],
           PredictionSummary(prediction: prediction, home: home, away: away),
           const SizedBox(height: 12),
+          _AiPreviewCard(
+            preview: aiPreview,
+            isGenerating: isGeneratingAiPreview,
+            onGenerate: () => onGenerateAiPreview(aiPreviewRequest),
+          ),
+          const SizedBox(height: 12),
           _PredictionFactors(prediction: prediction),
           const SizedBox(height: 12),
           ScorerLikelihoodList(scorers: prediction.scorers),
@@ -108,6 +133,109 @@ class MatchDetailScreen extends StatelessWidget {
             label: const Text('Save prediction'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AiPreviewCard extends StatelessWidget {
+  const _AiPreviewCard({
+    required this.preview,
+    required this.isGenerating,
+    required this.onGenerate,
+  });
+
+  final AiMatchPreview? preview;
+  final bool isGenerating;
+  final Future<void> Function() onGenerate;
+
+  @override
+  Widget build(BuildContext context) {
+    final currentPreview = preview;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.auto_awesome, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'AI match preview',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            if (currentPreview == null) ...[
+              Text(
+                'Generate a concise preview from the local match, team, player, and prediction data.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 12),
+            ] else ...[
+              Text(
+                currentPreview.headline,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 8),
+              Text(currentPreview.tacticalSummary),
+              const SizedBox(height: 12),
+              Text(
+                'Key players',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 6),
+              for (final playerLine in currentPreview.keyPlayers)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text('- $playerLine'),
+                ),
+              const SizedBox(height: 8),
+              Text(currentPreview.predictionRationale),
+              const SizedBox(height: 8),
+              Text(currentPreview.watchNote),
+              const SizedBox(height: 8),
+              Text(
+                currentPreview.disclaimer,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Source: ${currentPreview.source}',
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+              const SizedBox(height: 12),
+            ],
+            FilledButton.icon(
+              onPressed: isGenerating ? null : onGenerate,
+              icon: isGenerating
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.auto_awesome),
+              label: Text(
+                isGenerating
+                    ? 'Generating preview'
+                    : currentPreview == null
+                    ? 'Generate AI preview'
+                    : 'Refresh AI preview',
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

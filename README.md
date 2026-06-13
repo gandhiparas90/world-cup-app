@@ -17,13 +17,14 @@ The design spec lives at:
 
 ## Current Checkpoint
 
-Stage 2.5 is the current runnable Flutter checkpoint:
+Stage 2.6 is the current runnable Flutter checkpoint:
 
 - Personalized Home screen that starts with profile setup instead of a dense fixture list.
 - Full local catalog for all 48 World Cup teams, Groups A-L, and all 72 group-stage fixtures.
 - Fixtures screen with local kickoff conversion, US viewing metadata, team notes, completed-result labels, and prototype predictions.
 - Teams screen with searchable team catalog sourced from the same local team table as the Profile favorite-team dropdown.
 - Match Detail screen with local win/draw/loss percentages, scoreline estimates, "Why this prediction?" factors, scorer likelihoods, team context, and US viewing info when a profile exists.
+- AI match preview card that can generate a Gemini-backed preview from local match/team/player/prediction data, with deterministic offline fallback when no API key is supplied.
 - Profile screen with local Hive-backed display name, country, time zone, favorite team, and saved predictions.
 - Player/scorer records remain partial by design until a roster/stat source is connected.
 
@@ -52,16 +53,28 @@ AI_MODEL=gemini-3.5-flash
 ```
 
 Do not add real API keys to Dart source, screenshots, docs, commits, or GitHub
-issues. The Flutter app should call a local/backend proxy that reads this env
-file; client-side mobile or web builds should not contain the key.
+issues.
 
-Verified Stage 2.5 commands:
+For local prototype runs with Gemini enabled:
+
+```bash
+cd world_cup_matchiq_app
+bash tool/flutter_with_env.sh run -d chrome
+```
+
+The helper reads only `GEMINI_API_KEY` and `AI_MODEL` from `.env.local` and
+passes them as dart defines. This keeps the key out of Git, but direct
+Flutter web/mobile clients are not production-safe secret storage because
+runtime credentials can be inspected. A production version should use a
+backend proxy or serverless function.
+
+Verified Stage 2.6 commands:
 
 ```bash
 /Users/parasgandhi/Project/temp/flutter/bin/flutter analyze
 /Users/parasgandhi/Project/temp/flutter/bin/flutter test
-/Users/parasgandhi/Project/temp/flutter/bin/flutter test tool/progress_screenshots.dart --update-goldens --dart-define=SCREENSHOT_STAGE=stage2_5
-/Users/parasgandhi/Project/temp/flutter/bin/flutter build web --no-wasm-dry-run
+/Users/parasgandhi/Project/temp/flutter/bin/flutter test tool/progress_screenshots.dart --update-goldens --dart-define=SCREENSHOT_STAGE=stage2_6
+bash tool/flutter_with_env.sh build web --no-wasm-dry-run
 ```
 
-Stage 2.5 screenshots are stored in `docs/screenshots/stage2_5/`.
+Stage 2.6 screenshots are stored in `docs/screenshots/stage2_6/`.

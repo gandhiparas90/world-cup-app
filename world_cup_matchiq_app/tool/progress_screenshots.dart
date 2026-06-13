@@ -8,6 +8,7 @@ import 'package:world_cup_matchiq/app/theme.dart';
 import 'package:world_cup_matchiq/app/world_cup_matchiq_app.dart';
 import 'package:world_cup_matchiq/data/user_profile_repository.dart';
 import 'package:world_cup_matchiq/data/seed_data.dart';
+import 'package:world_cup_matchiq/models/ai_match_preview.dart';
 import 'package:world_cup_matchiq/models/saved_prediction.dart';
 import 'package:world_cup_matchiq/models/user_profile.dart';
 import 'package:world_cup_matchiq/screens/match_detail_screen.dart';
@@ -89,6 +90,9 @@ void main() {
           players: SeedData.playersForMatch('bra-mar'),
           profile: _sampleProfile(),
           onSavePrediction: (_) async {},
+          aiPreview: screenshotStage == 'stage2_6' ? _sampleAiPreview() : null,
+          isGeneratingAiPreview: false,
+          onGenerateAiPreview: (_) async {},
         ),
       ),
     );
@@ -97,6 +101,14 @@ void main() {
     if (screenshotStage == 'stage2_5') {
       await tester.scrollUntilVisible(
         find.text('Win / draw / loss probability'),
+        240,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.pumpAndSettle();
+    }
+    if (screenshotStage == 'stage2_6') {
+      await tester.scrollUntilVisible(
+        find.text('AI match preview'),
         240,
         scrollable: find.byType(Scrollable).last,
       );
@@ -198,6 +210,27 @@ UserProfile _sampleProfile() {
     favoriteTeamId: 'por',
     createdAt: DateTime(2026, 6, 13, 10),
     updatedAt: DateTime(2026, 6, 13, 10),
+  );
+}
+
+AiMatchPreview _sampleAiPreview() {
+  return AiMatchPreview(
+    matchId: 'bra-mar',
+    headline: 'Morocco pressure makes this a narrow Brazil test',
+    tacticalSummary:
+        'Brazil have the stronger shot-creation profile, but Morocco can keep the match tense if their wide defenders break pressure and force Brazil into transition defense.',
+    keyPlayers: const [
+      'Vinicius Junior: primary Brazil scorer signal from local player inputs.',
+      'Achraf Hakimi: Morocco counterattack outlet and chance creator.',
+      'Youssef En-Nesyri: aerial target if Morocco protect possession.',
+    ],
+    predictionRationale:
+        'The prototype model has Brazil win 30%, draw 28%, and Morocco win 42%, so the generated preview treats the scoreline as close rather than certain.',
+    watchNote: 'FOX at 4 PM local time for a US Central Time profile.',
+    disclaimer:
+        'AI-assisted prototype summary based on local app data. Not betting advice, official probabilities, or live team news.',
+    source: 'Gemini gemini-3.5-flash',
+    createdAt: DateTime(2026, 6, 13, 15),
   );
 }
 

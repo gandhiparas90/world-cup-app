@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../models/player.dart';
 import '../models/saved_prediction.dart';
 import '../models/team.dart';
 import '../models/user_profile.dart';
 import '../models/world_cup_match.dart';
+import '../state/matchiq_controller.dart';
 import '../utils/match_viewing.dart';
 import '../widgets/match_card.dart';
 import 'match_detail_screen.dart';
@@ -53,13 +55,20 @@ class MatchesScreen extends StatelessWidget {
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => MatchDetailScreen(
-                    match: match,
-                    home: teamById(match.homeTeamId),
-                    away: teamById(match.awayTeamId),
-                    players: playersForMatch(match.id),
-                    profile: profile,
-                    onSavePrediction: onSavePrediction,
+                  builder: (_) => Consumer<MatchIqController>(
+                    builder: (context, controller, _) => MatchDetailScreen(
+                      match: match,
+                      home: controller.teamById(match.homeTeamId),
+                      away: controller.teamById(match.awayTeamId),
+                      players: controller.playersForMatch(match.id),
+                      profile: controller.profile,
+                      onSavePrediction: controller.savePrediction,
+                      aiPreview: controller.aiPreviewForMatch(match.id),
+                      isGeneratingAiPreview: controller.isGeneratingAiPreview(
+                        match.id,
+                      ),
+                      onGenerateAiPreview: controller.generateAiPreview,
+                    ),
                   ),
                 ),
               );

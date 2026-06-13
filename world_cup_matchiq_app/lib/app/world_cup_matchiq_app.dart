@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
+import '../data/ai_preview_repository.dart';
 import '../data/match_repository.dart';
 import '../data/saved_prediction_repository.dart';
 import '../data/user_profile_repository.dart';
@@ -9,6 +10,7 @@ import '../screens/home_screen.dart';
 import '../screens/matches_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/teams_screen.dart';
+import '../services/ai_match_preview_service.dart';
 import '../state/matchiq_controller.dart';
 import 'theme.dart';
 
@@ -17,6 +19,8 @@ class WorldCupMatchIqEntryPoint extends StatelessWidget {
     this.matchRepository = const MatchRepository.seeded(),
     this.savedPredictionRepository,
     this.userProfileRepository,
+    this.aiPreviewRepository,
+    this.aiMatchPreviewService,
     this.theme,
     super.key,
   });
@@ -24,6 +28,8 @@ class WorldCupMatchIqEntryPoint extends StatelessWidget {
   final MatchRepository matchRepository;
   final SavedPredictionRepository? savedPredictionRepository;
   final UserProfileRepository? userProfileRepository;
+  final AiPreviewRepository? aiPreviewRepository;
+  final AiMatchPreviewService? aiMatchPreviewService;
   final ThemeData? theme;
 
   @override
@@ -35,6 +41,10 @@ class WorldCupMatchIqEntryPoint extends StatelessWidget {
             savedPredictionRepository ?? InMemorySavedPredictionRepository(),
         userProfileRepository:
             userProfileRepository ?? InMemoryUserProfileRepository(),
+        aiPreviewRepository:
+            aiPreviewRepository ?? InMemoryAiPreviewRepository(),
+        aiMatchPreviewService:
+            aiMatchPreviewService ?? const FallbackAiMatchPreviewService(),
       )..load(),
       child: MaterialApp(
         title: 'World Cup MatchIQ',
