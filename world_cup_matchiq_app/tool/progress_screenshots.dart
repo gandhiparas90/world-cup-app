@@ -12,6 +12,7 @@ import 'package:world_cup_matchiq/models/saved_prediction.dart';
 import 'package:world_cup_matchiq/models/user_profile.dart';
 import 'package:world_cup_matchiq/screens/match_detail_screen.dart';
 import 'package:world_cup_matchiq/screens/profile_screen.dart';
+import 'package:world_cup_matchiq/screens/teams_screen.dart';
 import 'package:world_cup_matchiq/widgets/prediction_summary.dart';
 
 const screenshotStage = String.fromEnvironment(
@@ -96,7 +97,36 @@ void main() {
     await expectLater(
       find.byType(MaterialApp),
       matchesGoldenFile(
-        '../../docs/screenshots/$screenshotStage/03_match_detail.png',
+        '../../docs/screenshots/$screenshotStage/04_match_detail.png',
+      ),
+    );
+  });
+
+  testWidgets('captures $screenshotStage team search', (tester) async {
+    await _setPhoneViewport(tester);
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: MatchIqTheme.light(useGoogleFonts: false),
+        home: Scaffold(
+          appBar: AppBar(title: const Text('World Cup MatchIQ')),
+          body: TeamsScreen(
+            teams: SeedData.teams,
+            matchesForTeam: SeedData.matchesForTeam,
+            teamById: SeedData.teamById,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'Portugal');
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile(
+        '../../docs/screenshots/$screenshotStage/03_teams_search.png',
       ),
     );
   });
@@ -140,7 +170,7 @@ void main() {
     await expectLater(
       find.byType(MaterialApp),
       matchesGoldenFile(
-        '../../docs/screenshots/$screenshotStage/04_profile_saved.png',
+        '../../docs/screenshots/$screenshotStage/05_profile_saved.png',
       ),
     );
   });

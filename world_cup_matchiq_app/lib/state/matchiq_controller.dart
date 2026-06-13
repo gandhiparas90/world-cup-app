@@ -3,9 +3,11 @@ import 'package:flutter/foundation.dart';
 import '../data/match_repository.dart';
 import '../data/saved_prediction_repository.dart';
 import '../data/user_profile_repository.dart';
+import '../models/group_info.dart';
 import '../models/player.dart';
 import '../models/saved_prediction.dart';
 import '../models/team.dart';
+import '../models/watch_option.dart';
 import '../models/user_profile.dart';
 import '../models/world_cup_match.dart';
 
@@ -31,7 +33,11 @@ class MatchIqController extends ChangeNotifier {
 
   List<Team> get teams => matchRepository.teams;
 
+  List<GroupInfo> get groups => matchRepository.groups;
+
   List<WorldCupMatch> get matches => matchRepository.matches;
+
+  List<WorldCupMatch> get upcomingMatches => matchRepository.upcomingMatches;
 
   List<SavedPrediction> get savedPredictions =>
       List.unmodifiable(_savedPredictions);
@@ -46,6 +52,14 @@ class MatchIqController extends ChangeNotifier {
 
   List<Player> playersForMatch(String matchId) {
     return matchRepository.playersForMatch(matchId);
+  }
+
+  List<WorldCupMatch> matchesForTeam(String teamId) {
+    return matchRepository.matchesForTeam(teamId);
+  }
+
+  List<WatchOption> watchOptionsForMatch(String matchId) {
+    return matchRepository.watchOptionsForMatch(matchId);
   }
 
   Future<void> load() async {

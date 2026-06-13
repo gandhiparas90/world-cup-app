@@ -12,6 +12,7 @@ void main() {
     expect(find.text('World Cup MatchIQ'), findsOneWidget);
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Fixtures'), findsOneWidget);
+    expect(find.text('Teams'), findsOneWidget);
     expect(find.text('Profile'), findsOneWidget);
     expect(find.text('Set up your World Cup'), findsOneWidget);
     expect(find.text('Fixture snapshot'), findsOneWidget);
@@ -21,12 +22,31 @@ void main() {
 
     expect(find.text('Your World Cup'), findsOneWidget);
     expect(find.text('Portugal'), findsOneWidget);
-    expect(
-      find.text('No Portugal match in today\'s snapshot.'),
-      findsOneWidget,
+    expect(find.text('Portugal vs DR Congo'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Next near you'),
+      200,
+      scrollable: find.byType(Scrollable).last,
     );
-    expect(find.text('Today near you'), findsOneWidget);
-    expect(find.textContaining('FOX/FS1'), findsWidgets);
+    expect(find.text('Next near you'), findsOneWidget);
+    expect(find.textContaining('FOX'), findsWidgets);
+  });
+
+  testWidgets('searches teams from the full team catalog', (tester) async {
+    await tester.pumpWidget(const WorldCupMatchIqEntryPoint());
+    await tester.pumpAndSettle();
+
+    await tester.tap(_navLabel('Teams'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('48 World Cup teams across 12 groups.'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'Portugal');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Portugal'), findsWidgets);
+    expect(find.text('Group K - UEFA'), findsOneWidget);
+    expect(find.textContaining('vs DR Congo'), findsOneWidget);
   });
 
   testWidgets('opens match detail with viewing metadata and saves prediction', (
@@ -40,8 +60,7 @@ void main() {
     await tester.tap(_navLabel('Fixtures'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Brazil vs Morocco'));
-    await tester.pumpAndSettle();
+    await _openFixture(tester, 'Brazil vs Morocco');
 
     expect(find.text('Viewing'), findsOneWidget);
     expect(find.text('Match context'), findsOneWidget);
@@ -86,8 +105,7 @@ void main() {
 
     await tester.tap(_navLabel('Fixtures'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Brazil vs Morocco'));
-    await tester.pumpAndSettle();
+    await _openFixture(tester, 'Brazil vs Morocco');
     await tester.scrollUntilVisible(
       find.text('Save prediction'),
       200,
@@ -115,4 +133,43 @@ Finder _navLabel(String label) {
     of: find.byType(NavigationBar),
     matching: find.text(label),
   );
+}
+
+Future<void> _openFixture(WidgetTester tester, String label) async {
+  final scrollable = find.byType(Scrollable).last;
+  await tester.scrollUntilVisible(
+    find.text(label),
+    250,
+    scrollable: scrollable,
+  );
+  final card = find.ancestor(
+    of: find.text(label),
+    matching: find.byType(InkWell),
+  );
+  expect(card, findsWidgets);
+
+  for (var attempt = 0; attempt < 8; attempt += 1) {
+    final rect = tester.getRect(card.first);
+    final viewportHeight =
+        tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    const topChrome = 96.0;
+    const bottomChrome = 120.0;
+
+    if (rect.top < topChrome) {
+      await tester.drag(scrollable, const Offset(0, 120));
+      await tester.pumpAndSettle();
+      continue;
+    }
+
+    if (rect.bottom > viewportHeight - bottomChrome) {
+      await tester.drag(scrollable, const Offset(0, -120));
+      await tester.pumpAndSettle();
+      continue;
+    }
+
+    break;
+  }
+
+  await tester.tap(card.first);
+  await tester.pumpAndSettle();
 }

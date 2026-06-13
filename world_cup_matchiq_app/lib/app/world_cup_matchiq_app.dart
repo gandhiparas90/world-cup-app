@@ -8,6 +8,7 @@ import '../data/user_profile_repository.dart';
 import '../screens/home_screen.dart';
 import '../screens/matches_screen.dart';
 import '../screens/profile_screen.dart';
+import '../screens/teams_screen.dart';
 import '../state/matchiq_controller.dart';
 import 'theme.dart';
 
@@ -60,7 +61,7 @@ class WorldCupMatchIqApp extends StatelessWidget {
         savedPredictions: controller.savedPredictions,
         onSaveProfile: controller.saveProfile,
         onOpenFixtures: () => controller.selectTab(1),
-        onOpenProfile: () => controller.selectTab(2),
+        onOpenProfile: () => controller.selectTab(3),
       ),
       MatchesScreen(
         matches: controller.matches,
@@ -68,6 +69,11 @@ class WorldCupMatchIqApp extends StatelessWidget {
         playersForMatch: controller.playersForMatch,
         profile: controller.profile,
         onSavePrediction: controller.savePrediction,
+      ),
+      TeamsScreen(
+        teams: controller.teams,
+        matchesForTeam: controller.matchesForTeam,
+        teamById: controller.teamById,
       ),
       ProfileScreen(
         profile: controller.profile,
@@ -97,6 +103,11 @@ class WorldCupMatchIqApp extends StatelessWidget {
             icon: Icon(LucideIcons.calendarDays),
             selectedIcon: Icon(LucideIcons.calendarDays),
             label: 'Fixtures',
+          ),
+          NavigationDestination(
+            icon: Icon(LucideIcons.usersRound),
+            selectedIcon: Icon(LucideIcons.usersRound),
+            label: 'Teams',
           ),
           NavigationDestination(
             icon: Icon(LucideIcons.userRound),

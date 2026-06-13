@@ -18,6 +18,10 @@ void main() {
 
       await controller.load();
       expect(controller.isLoading, isFalse);
+      expect(controller.teams, hasLength(48));
+      expect(controller.groups, hasLength(12));
+      expect(controller.matches, hasLength(72));
+      expect(controller.upcomingMatches, hasLength(12));
       expect(controller.savedPredictions, isEmpty);
       expect(controller.profile, isNull);
       expect(controller.selectedIndex, 0);

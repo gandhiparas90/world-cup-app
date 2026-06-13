@@ -46,6 +46,17 @@ class MatchCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(metaLine ?? '${match.stage} - ${match.kickoffLabel}'),
+              if (match.isCompleted &&
+                  match.homeScore != null &&
+                  match.awayScore != null) ...[
+                const SizedBox(height: 6),
+                Text(
+                  'Final: ${home.code} ${match.homeScore} - ${match.awayScore} ${away.code}',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w900),
+                ),
+              ],
               const SizedBox(height: 4),
               Text(match.venue),
               const SizedBox(height: 4),

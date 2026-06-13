@@ -31,14 +31,14 @@ class MatchesScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       children: [
         Text(
-          'Today\'s fixtures',
+          'Group fixtures',
           style: Theme.of(
             context,
           ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 8),
         Text(
-          'Local World Cup snapshot with fixture context, team news, and transparent prototype predictions.',
+          'Full local group-stage catalog with kickoff times, US broadcast context, team notes, and transparent prototype predictions.',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(height: 16),
@@ -48,7 +48,7 @@ class MatchesScreen extends StatelessWidget {
             home: teamById(match.homeTeamId),
             away: teamById(match.awayTeamId),
             metaLine: profile == null
-                ? null
+                ? '${match.stage} - ${match.dateLabel} ${match.kickoffLabel}'
                 : '${match.stage} - ${viewingLine(match, profile!.countryCode, profile!.timezone)}',
             onTap: () {
               Navigator.of(context).push(

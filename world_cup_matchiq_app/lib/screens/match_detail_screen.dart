@@ -43,7 +43,20 @@ class MatchDetailScreen extends StatelessWidget {
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 8),
-          Text('${match.stage} - ${match.kickoffLabel} - ${match.venue}'),
+          Text(
+            '${match.stage} - ${match.dateLabel} ${match.kickoffLabel} - ${match.venue}',
+          ),
+          if (match.isCompleted &&
+              match.homeScore != null &&
+              match.awayScore != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              'Final: ${home.code} ${match.homeScore} - ${match.awayScore} ${away.code}',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w900),
+            ),
+          ],
           const SizedBox(height: 4),
           Text(
             '${match.dataUpdatedLabel} - ${match.sourceLabel}',

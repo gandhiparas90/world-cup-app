@@ -5,8 +5,25 @@ World Cup MatchIQ currently uses a local snapshot, not a live sports API.
 ## Snapshot
 
 - Snapshot date: June 13, 2026
-- Primary fixture/news source: Guardian World Cup guide
-- Source URL: https://www.theguardian.com/football/2026/jun/13/how-to-watch-world-cup-brazil-morocco-haiti-scotland
+- Primary fixture/broadcast source: SB Nation World Cup schedule
+- Source URL: https://www.sbnation.com/soccer/1117513/world-cup-schedule-2026-how-to-watch-every-match-scores-and-more
+- Catalog scope: 48 teams, Groups A-L, and 72 group-stage fixtures
+- Broadcast scope: US English TV channel plus a Spanish-language Telemundo/Peacock option
+- Player scope: partial local scorer records for covered prototype matches only
+
+The local model is deliberately shaped like table data so a later stage can
+replace the backing source with SQLite, Firebase, a sports-data API, or an
+ingested JSON feed without rewriting screens.
+
+## Local Tables
+
+- `teams`: team identity, group, confederation, style notes, local strength inputs
+- `groups`: group ID and four team IDs
+- `matches`: fixture ID, teams, date, kickoff, venue, broadcast channel, status, source metadata
+- `watchOptions`: match-to-country broadcast rows for US viewing context
+- `teamStats`: local attack, defense, form, and goals inputs used by prototype predictions
+- `players`: partial scorer inputs for selected matches
+- `newsItems`: partial local notes used to explain the current data scope
 
 ## Prototype Prediction Inputs
 

@@ -5,6 +5,7 @@ class Team {
     required this.code,
     required this.flagLabel,
     required this.group,
+    required this.confederation,
     required this.manager,
     required this.style,
     required this.formSummary,
@@ -21,6 +22,7 @@ class Team {
   final String code;
   final String flagLabel;
   final String group;
+  final String confederation;
   final String manager;
   final String style;
   final String formSummary;

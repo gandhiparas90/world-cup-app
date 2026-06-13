@@ -222,10 +222,15 @@ class _FavoriteTeamCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final favorite = _teamByIdOrFallback(teams, profile.favoriteTeamId);
-    final favoriteMatches = matches.where(
-      (match) =>
-          match.homeTeamId == favorite.id || match.awayTeamId == favorite.id,
-    );
+    final favoriteMatches = matches
+        .where(
+          (match) =>
+              match.isScheduled &&
+              (match.homeTeamId == favorite.id ||
+                  match.awayTeamId == favorite.id),
+        )
+        .take(3)
+        .toList();
 
     return Card(
       child: Padding(
@@ -258,15 +263,19 @@ class _FavoriteTeamCard extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             if (favoriteMatches.isEmpty)
-              Text('No ${favorite.name} match in today\'s snapshot.')
+              Text('No scheduled ${favorite.name} match in the local catalog.')
             else
-              for (final match in favoriteMatches)
+              for (final match in favoriteMatches) ...[
                 Text(
-                  viewingLine(match, profile.countryCode, profile.timezone),
+                  _matchLabel(match, teamById),
                   style: Theme.of(
                     context,
-                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w900),
                 ),
+                const SizedBox(height: 3),
+                Text(viewingLine(match, profile.countryCode, profile.timezone)),
+                const SizedBox(height: 8),
+              ],
             const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerLeft,
@@ -298,7 +307,10 @@ class _TodayNearYouSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final visibleMatches = matches.take(2).toList();
+    final visibleMatches = matches
+        .where((match) => match.isScheduled)
+        .take(2)
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -308,7 +320,7 @@ class _TodayNearYouSection extends StatelessWidget {
             Expanded(
               child: _SectionTitle(
                 icon: LucideIcons.tv,
-                title: 'Today near you',
+                title: 'Next near you',
               ),
             ),
             TextButton(onPressed: onOpenFixtures, child: const Text('All')),
@@ -588,4 +600,10 @@ Team _preferredTeam(List<Team> teams) {
 
 Team _teamByIdOrFallback(List<Team> teams, String id) {
   return teams.firstWhere((team) => team.id == id, orElse: () => teams.first);
+}
+
+String _matchLabel(WorldCupMatch match, Team Function(String id) teamById) {
+  final home = teamById(match.homeTeamId);
+  final away = teamById(match.awayTeamId);
+  return '${home.name} vs ${away.name}';
 }

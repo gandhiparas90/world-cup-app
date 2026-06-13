@@ -10,6 +10,7 @@ docs/screenshots/
   stage2/
   stage2_1/
   stage2_3/
+  stage2_4/
   stage3/
 ```
 
@@ -17,7 +18,7 @@ Capture the current stage screenshots from the app project with:
 
 ```bash
 cd world_cup_matchiq_app
-/Users/parasgandhi/Project/temp/flutter/bin/flutter test tool/progress_screenshots.dart --update-goldens --dart-define=SCREENSHOT_STAGE=stage2_3
+/Users/parasgandhi/Project/temp/flutter/bin/flutter test tool/progress_screenshots.dart --update-goldens --dart-define=SCREENSHOT_STAGE=stage2_4
 ```
 
 Stage 1 screenshots:
@@ -44,3 +45,11 @@ Stage 2.3 screenshots:
 - `stage2_3/02_home_personalized.png`
 - `stage2_3/03_match_detail.png`
 - `stage2_3/04_profile_saved.png`
+
+Stage 2.4 screenshots:
+
+- `stage2_4/01_home_setup.png`
+- `stage2_4/02_home_personalized.png`
+- `stage2_4/03_teams_search.png`
+- `stage2_4/04_match_detail.png`
+- `stage2_4/05_profile_saved.png`

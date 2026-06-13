@@ -17,13 +17,15 @@ The design spec lives at:
 
 ## Current Checkpoint
 
-Stage 2.3 is the current runnable Flutter checkpoint:
+Stage 2.4 is the current runnable Flutter checkpoint:
 
 - Personalized Home screen that starts with profile setup instead of a dense fixture list.
-- Fixtures screen with seeded World Cup matches, local viewing metadata, team news, and prototype predictions.
+- Full local catalog for all 48 World Cup teams, Groups A-L, and all 72 group-stage fixtures.
+- Fixtures screen with local kickoff conversion, US viewing metadata, team notes, completed-result labels, and prototype predictions.
+- Teams screen with searchable team catalog sourced from the same local team table as the Profile favorite-team dropdown.
 - Match Detail screen with scoreline estimates, scorer likelihoods, team context, and US viewing info when a profile exists.
 - Profile screen with local Hive-backed display name, country, time zone, favorite team, and saved predictions.
-- Portugal exists in the local team catalog so a user can select Portugal even when Portugal is not in today's fixture snapshot.
+- Player/scorer records remain partial by design until a roster/stat source is connected.
 
 Run the app:
 
@@ -32,13 +34,13 @@ cd world_cup_matchiq_app
 /Users/parasgandhi/Project/temp/flutter/bin/flutter run -d chrome
 ```
 
-Verified Stage 2.3 commands:
+Verified Stage 2.4 commands:
 
 ```bash
 /Users/parasgandhi/Project/temp/flutter/bin/flutter analyze
 /Users/parasgandhi/Project/temp/flutter/bin/flutter test
-/Users/parasgandhi/Project/temp/flutter/bin/flutter test tool/progress_screenshots.dart --update-goldens --dart-define=SCREENSHOT_STAGE=stage2_3
+/Users/parasgandhi/Project/temp/flutter/bin/flutter test tool/progress_screenshots.dart --update-goldens --dart-define=SCREENSHOT_STAGE=stage2_4
 /Users/parasgandhi/Project/temp/flutter/bin/flutter build web --no-wasm-dry-run
 ```
 
-Stage 2.3 screenshots are stored in `docs/screenshots/stage2_3/`.
+Stage 2.4 screenshots are stored in `docs/screenshots/stage2_4/`.
