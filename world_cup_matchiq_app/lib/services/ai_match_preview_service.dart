@@ -81,7 +81,7 @@ class GeminiAiMatchPreviewService implements AiMatchPreviewService {
       final response = await _post(
         target,
         headers: _headersFor(target),
-        body: jsonEncode(buildGeminiPayload(request)),
+        body: jsonEncode(buildGeminiPayload(request, model: model)),
       );
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -102,7 +102,7 @@ class GeminiAiMatchPreviewService implements AiMatchPreviewService {
       final reason = _fallbackReason(error);
       // Kept intentionally key-free. Browser console should explain fallback.
       // ignore: avoid_print
-      print('Gemini preview failed: $reason');
+      print(_fallbackLogLine(reason, error));
       return buildFallbackPreview(
         request,
         source: 'Offline AI draft - $reason',
@@ -132,7 +132,10 @@ class GeminiAiMatchPreviewService implements AiMatchPreviewService {
   }
 }
 
-Map<String, Object?> buildGeminiPayload(AiPreviewRequest request) {
+Map<String, Object?> buildGeminiPayload(
+  AiPreviewRequest request, {
+  String model = 'gemini-3.5-flash',
+}) {
   return {
     'system_instruction': {
       'parts': [
@@ -140,8 +143,7 @@ Map<String, Object?> buildGeminiPayload(AiPreviewRequest request) {
           'text':
               'You write concise football match previews for MatchIQ. '
               'Use only the supplied local app data. Do not claim live news, official odds, or certainty. '
-              'Return only valid JSON with these string fields: headline, tactical_summary, '
-              'prediction_rationale, watch_note, disclaimer; and key_players as a list of 2 to 4 strings.',
+              'Return only valid JSON matching the supplied schema. Do not include markdown or explanatory prose.',
         },
       ],
     },
@@ -153,10 +155,65 @@ Map<String, Object?> buildGeminiPayload(AiPreviewRequest request) {
       },
     ],
     'generationConfig': {
-      'temperature': 0.35,
-      'maxOutputTokens': 700,
+      'temperature': 0.25,
+      'maxOutputTokens': 1400,
+      'thinkingConfig': _thinkingConfigFor(model),
       'responseMimeType': 'application/json',
+      'responseSchema': _previewResponseSchema(),
     },
+  };
+}
+
+Map<String, Object?> _thinkingConfigFor(String model) {
+  if (model.startsWith('gemini-2.5')) {
+    return {'thinkingBudget': 0};
+  }
+  if (model.startsWith('gemini-3')) {
+    return {'thinkingLevel': 'minimal'};
+  }
+  return {};
+}
+
+Map<String, Object?> _previewResponseSchema() {
+  return {
+    'type': 'object',
+    'properties': {
+      'headline': {
+        'type': 'string',
+        'description': 'A short match-preview headline.',
+      },
+      'tactical_summary': {
+        'type': 'string',
+        'description': 'Two to three sentences on tactics and matchup shape.',
+      },
+      'key_players': {
+        'type': 'array',
+        'items': {'type': 'string'},
+        'minItems': 2,
+        'maxItems': 4,
+      },
+      'prediction_rationale': {
+        'type': 'string',
+        'description':
+            'A concise explanation using the supplied probabilities.',
+      },
+      'watch_note': {
+        'type': 'string',
+        'description': 'A short note using the supplied viewing context.',
+      },
+      'disclaimer': {
+        'type': 'string',
+        'description': 'A short transparency note about local app data.',
+      },
+    },
+    'required': [
+      'headline',
+      'tactical_summary',
+      'key_players',
+      'prediction_rationale',
+      'watch_note',
+      'disclaimer',
+    ],
   };
 }
 
@@ -167,19 +224,21 @@ AiMatchPreview previewFromGeminiResponse(
 }) {
   final decoded = jsonDecode(responseBody) as Map<String, dynamic>;
   final candidates = decoded['candidates'] as List<dynamic>?;
-  final content = candidates?.isNotEmpty == true
-      ? candidates!.first['content'] as Map<String, dynamic>?
+  final firstCandidate = candidates?.isNotEmpty == true
+      ? candidates!.first as Map<String, dynamic>?
       : null;
+  final finishReason = firstCandidate?['finishReason']?.toString();
+  final content = firstCandidate?['content'] as Map<String, dynamic>?;
   final parts = content?['parts'] as List<dynamic>?;
-  final text = parts?.isNotEmpty == true
-      ? parts!.first['text'] as String?
-      : null;
+  final text = _textFromGeminiParts(parts);
 
   if (text == null || text.trim().isEmpty) {
-    throw const FormatException('Gemini response did not contain text');
+    throw FormatException(
+      'Gemini response did not contain text${_finishReasonSuffix(finishReason)}',
+    );
   }
 
-  final previewJson = jsonDecode(_stripJsonFence(text)) as Map<String, dynamic>;
+  final previewJson = _decodePreviewJson(text, finishReason: finishReason);
   final keyPlayers = (previewJson['key_players'] as List<dynamic>?)
       ?.map((value) => value.toString().trim())
       .where((value) => value.isNotEmpty)
@@ -205,6 +264,72 @@ AiMatchPreview previewFromGeminiResponse(
   }
 
   return preview;
+}
+
+String? _textFromGeminiParts(List<dynamic>? parts) {
+  final segments = <String>[];
+  for (final part in parts ?? const <dynamic>[]) {
+    if (part is! Map<String, dynamic>) {
+      continue;
+    }
+    final text = part['text'];
+    if (text is String && text.trim().isNotEmpty) {
+      segments.add(text);
+    }
+  }
+
+  if (segments.isEmpty) {
+    return null;
+  }
+  return segments.join('\n').trim();
+}
+
+Map<String, dynamic> _decodePreviewJson(
+  String text, {
+  required String? finishReason,
+}) {
+  final stripped = _stripJsonFence(text);
+  final direct = _tryDecodePreviewJson(stripped);
+  if (direct != null) {
+    return direct;
+  }
+
+  final objectStart = stripped.indexOf('{');
+  final objectEnd = stripped.lastIndexOf('}');
+  if (objectStart >= 0 && objectEnd > objectStart) {
+    final extracted = stripped.substring(objectStart, objectEnd + 1);
+    final decoded = _tryDecodePreviewJson(extracted);
+    if (decoded != null) {
+      return decoded;
+    }
+  }
+
+  throw FormatException(
+    'Gemini preview JSON invalid${_finishReasonSuffix(finishReason)}; text="${_snippet(stripped)}"',
+  );
+}
+
+Map<String, dynamic>? _tryDecodePreviewJson(String value) {
+  try {
+    final decoded = jsonDecode(value);
+    return decoded is Map<String, dynamic> ? decoded : null;
+  } on FormatException {
+    return null;
+  }
+}
+
+String _finishReasonSuffix(String? finishReason) {
+  return finishReason == null || finishReason.isEmpty
+      ? ''
+      : '; finishReason=$finishReason';
+}
+
+String _snippet(String value) {
+  final compact = value.replaceAll(RegExp(r'\s+'), ' ').trim();
+  if (compact.length <= 160) {
+    return compact;
+  }
+  return '${compact.substring(0, 157)}...';
 }
 
 AiMatchPreview buildFallbackPreview(
@@ -331,4 +456,23 @@ String _fallbackReason(Object error) {
     return 'Gemini response parse failed';
   }
   return 'Gemini request failed';
+}
+
+String _fallbackLogLine(String reason, Object error) {
+  final detail = _fallbackLogDetail(error);
+  if (detail == null || detail.isEmpty) {
+    return 'Gemini preview failed: $reason';
+  }
+  return 'Gemini preview failed: $reason: $detail';
+}
+
+String? _fallbackLogDetail(Object error) {
+  if (error is FormatException) {
+    return _snippet(error.message);
+  }
+  final message = error.toString();
+  if (message.isEmpty) {
+    return null;
+  }
+  return _snippet(message);
 }

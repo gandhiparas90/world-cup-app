@@ -44,6 +44,10 @@ void main() {
       expect(prompt, contains('Outcome probabilities'));
       expect(prompt, contains('Prototype scoreline'));
       expect(jsonEncode(payload), contains('responseMimeType'));
+      expect(jsonEncode(payload), contains('responseSchema'));
+      expect(jsonEncode(payload), contains('thinkingLevel'));
+      expect(jsonEncode(payload), contains('minimal'));
+      expect(jsonEncode(payload), contains('tactical_summary'));
     });
 
     test('Gemini service parses structured JSON response', () async {
@@ -99,6 +103,45 @@ void main() {
       expect(preview.source, 'Gemini gemini-test');
       expect(preview.headline, 'Brazil face a transition test');
       expect(preview.keyPlayers, hasLength(2));
+    });
+
+    test('Gemini parser extracts JSON from wrapped text parts', () {
+      final request = _request();
+      final preview = previewFromGeminiResponse(
+        jsonEncode({
+          'candidates': [
+            {
+              'finishReason': 'STOP',
+              'content': {
+                'parts': [
+                  {'text': 'Here is the JSON requested:\n'},
+                  {
+                    'text': jsonEncode({
+                      'headline': 'Morocco carry transition threat',
+                      'tactical_summary':
+                          'Morocco can pressure Brazil by defending compactly and breaking quickly into wide channels.',
+                      'key_players': [
+                        'Achraf Hakimi: counter-attacking outlet.',
+                        'Vinicius Junior: Brazil shot creator.',
+                      ],
+                      'prediction_rationale':
+                          'The local model gives Morocco the strongest win signal while preserving a live draw path.',
+                      'watch_note': 'FOX at 4 PM local time.',
+                      'disclaimer':
+                          'AI-generated from local match data, not official odds.',
+                    }),
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+        request: request,
+        source: 'Gemini test',
+      );
+
+      expect(preview.headline, 'Morocco carry transition threat');
+      expect(preview.source, 'Gemini test');
     });
 
     test(

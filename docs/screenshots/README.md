@@ -13,6 +13,7 @@ docs/screenshots/
   stage2_4/
   stage2_5/
   stage2_6/
+  stage2_7/
   stage3/
 ```
 
@@ -71,3 +72,7 @@ Stage 2.6 screenshots:
 - `stage2_6/03_teams_search.png`
 - `stage2_6/04_match_detail.png`
 - `stage2_6/05_profile_saved.png`
+
+Stage 2.7 screenshots:
+
+- `stage2_7/01_gemini_proxy_preview.jpg`
