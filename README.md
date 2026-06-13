@@ -59,14 +59,20 @@ For local prototype runs with Gemini enabled:
 
 ```bash
 cd world_cup_matchiq_app
-bash tool/flutter_with_env.sh run -d chrome
+/Users/parasgandhi/Project/temp/flutter/bin/dart run tool/gemini_proxy.dart
 ```
 
-The helper reads only `GEMINI_API_KEY` and `AI_MODEL` from `.env.local` and
-passes them as dart defines. This keeps the key out of Git, but direct
-Flutter web/mobile clients are not production-safe secret storage because
-runtime credentials can be inspected. A production version should use a
-backend proxy or serverless function.
+In a second terminal:
+
+```bash
+cd world_cup_matchiq_app
+GEMINI_PROXY_URL=http://127.0.0.1:8787/generateContent bash tool/flutter_with_env.sh run -d chrome
+```
+
+The local proxy reads `GEMINI_API_KEY` from `.env.local`, calls Gemini
+server-side, and enables CORS for the local Flutter web app. The helper passes
+`AI_MODEL` and `GEMINI_PROXY_URL` as dart defines. This keeps the key out of
+Git and out of the browser bundle.
 
 Verified Stage 2.6 commands:
 
@@ -74,7 +80,7 @@ Verified Stage 2.6 commands:
 /Users/parasgandhi/Project/temp/flutter/bin/flutter analyze
 /Users/parasgandhi/Project/temp/flutter/bin/flutter test
 /Users/parasgandhi/Project/temp/flutter/bin/flutter test tool/progress_screenshots.dart --update-goldens --dart-define=SCREENSHOT_STAGE=stage2_6
-bash tool/flutter_with_env.sh build web --no-wasm-dry-run
+GEMINI_PROXY_URL=http://127.0.0.1:8787/generateContent bash tool/flutter_with_env.sh build web --no-wasm-dry-run
 ```
 
 Stage 2.6 screenshots are stored in `docs/screenshots/stage2_6/`.

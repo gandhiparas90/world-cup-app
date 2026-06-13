@@ -225,11 +225,11 @@ AiMatchPreview _sampleAiPreview() {
       'Youssef En-Nesyri: aerial target if Morocco protect possession.',
     ],
     predictionRationale:
-        'The prototype model has Brazil win 30%, draw 28%, and Morocco win 42%, so the generated preview treats the scoreline as close rather than certain.',
+        'MatchIQ has Brazil win 30%, draw 28%, and Morocco win 42%, so the generated preview treats the scoreline as close rather than certain.',
     watchNote: 'FOX at 4 PM local time for a US Central Time profile.',
     disclaimer:
-        'AI-assisted prototype summary based on local app data. Not betting advice, official probabilities, or live team news.',
-    source: 'Gemini gemini-3.5-flash',
+        'AI-generated from local match data. Not betting advice, official probabilities, or live team news.',
+    source: 'Gemini gemini-3.5-flash via local proxy',
     createdAt: DateTime(2026, 6, 13, 15),
   );
 }

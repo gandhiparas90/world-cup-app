@@ -15,6 +15,7 @@ Future<void> main() async {
     'AI_MODEL',
     defaultValue: 'gemini-3.5-flash',
   );
+  const geminiProxyUrl = String.fromEnvironment('GEMINI_PROXY_URL');
   final savedPredictionsBox = await Hive.openBox<dynamic>(
     HiveSavedPredictionRepository.boxName,
   );
@@ -35,6 +36,7 @@ Future<void> main() async {
       aiMatchPreviewService: GeminiAiMatchPreviewService(
         apiKey: geminiApiKey,
         model: aiModel,
+        proxyUrl: geminiProxyUrl,
       ),
     ),
   );

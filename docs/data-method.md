@@ -63,8 +63,8 @@ instructed not to invent live news, official odds, or certainty. If no local
 `GEMINI_API_KEY` dart define is supplied, or if the API call fails, the app
 falls back to a deterministic offline preview built from the same local data.
 
-The API key remains outside Git. For local runs, pass it with
-`--dart-define=GEMINI_API_KEY=...` and optionally
-`--dart-define=AI_MODEL=gemini-3.5-flash`. Direct browser/mobile clients are
-not production-safe secret storage; a production version should use a backend
-proxy or serverless function.
+The API key remains outside Git. For local Chrome runs, start
+`world_cup_matchiq_app/tool/gemini_proxy.dart` and build or run Flutter with
+`GEMINI_PROXY_URL=http://127.0.0.1:8787/generateContent`. The proxy reads
+`.env.local`, calls Gemini server-side, and returns the Gemini response to the
+app. This avoids shipping the key in the browser bundle.

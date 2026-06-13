@@ -22,7 +22,10 @@ void main() {
         expect(preview.source, 'Offline AI draft');
         expect(preview.headline, contains('local signal'));
         expect(preview.predictionRationale, contains('%'));
-        expect(preview.disclaimer, contains('AI-assisted prototype'));
+        expect(
+          preview.disclaimer,
+          contains('AI-generated from local match data'),
+        );
         expect(preview.createdAt, DateTime(2026, 6, 13, 15));
       },
     );
@@ -75,7 +78,7 @@ void main() {
                           'watch_note':
                               'FOX coverage is listed in the local fixture data.',
                           'disclaimer':
-                              'AI-assisted prototype, not official odds.',
+                              'AI-generated from local match data, not official odds.',
                         }),
                       },
                     ],
@@ -98,6 +101,59 @@ void main() {
       expect(preview.keyPlayers, hasLength(2));
     });
 
+    test(
+      'Gemini service can route through a local proxy without key header',
+      () async {
+        final request = _request();
+        late Uri capturedUrl;
+        late Map<String, String>? capturedHeaders;
+        final service = GeminiAiMatchPreviewService(
+          apiKey: 'test-key',
+          model: 'gemini-test',
+          proxyUrl: 'http://127.0.0.1:8787/generateContent',
+          post: (url, {headers, body}) async {
+            capturedUrl = url;
+            capturedHeaders = headers;
+            return http.Response(
+              jsonEncode({
+                'candidates': [
+                  {
+                    'content': {
+                      'parts': [
+                        {
+                          'text': jsonEncode({
+                            'headline': 'Proxy generated preview',
+                            'tactical_summary':
+                                'Proxy route returns a structured tactical summary from Gemini.',
+                            'key_players': ['Player one', 'Player two'],
+                            'prediction_rationale':
+                                'The proxy preserves the same prediction context.',
+                            'watch_note': 'FOX local coverage.',
+                            'disclaimer': 'AI-generated from local match data.',
+                          }),
+                        },
+                      ],
+                    },
+                  },
+                ],
+              }),
+              200,
+            );
+          },
+        );
+
+        final preview = await service.generate(request);
+
+        expect(
+          capturedUrl.toString(),
+          'http://127.0.0.1:8787/generateContent?model=gemini-test',
+        );
+        expect(capturedHeaders?['x-goog-api-key'], isNull);
+        expect(preview.source, 'Gemini gemini-test via local proxy');
+        expect(preview.headline, 'Proxy generated preview');
+      },
+    );
+
     test('Gemini service falls back when response is malformed', () async {
       final request = _request();
       final service = GeminiAiMatchPreviewService(
@@ -112,8 +168,47 @@ void main() {
 
       final preview = await service.generate(request);
 
-      expect(preview.source, 'Offline AI draft');
-      expect(preview.createdAt, DateTime(2026, 6, 13, 16));
+      expect(preview.source, 'Offline AI draft - Gemini response parse failed');
+    });
+
+    test('Gemini service reports HTTP fallback reason', () async {
+      final request = _request();
+      final service = GeminiAiMatchPreviewService(
+        apiKey: 'test-key',
+        post: (url, {headers, body}) async {
+          return http.Response('forbidden', 403);
+        },
+      );
+
+      final preview = await service.generate(request);
+
+      expect(preview.source, 'Offline AI draft - Gemini HTTP 403');
+    });
+
+    test('Gemini service reports missing key fallback reason', () async {
+      final request = _request();
+      final service = GeminiAiMatchPreviewService(apiKey: '');
+
+      final preview = await service.generate(request);
+
+      expect(preview.source, 'Offline AI draft - missing Gemini key');
+    });
+
+    test('Gemini service reports browser request failures readably', () async {
+      final request = _request();
+      final service = GeminiAiMatchPreviewService(
+        apiKey: 'test-key',
+        post: (url, {headers, body}) async {
+          throw http.ClientException('XMLHttpRequest error');
+        },
+      );
+
+      final preview = await service.generate(request);
+
+      expect(
+        preview.source,
+        'Offline AI draft - browser/network request failed',
+      );
     });
   });
 }

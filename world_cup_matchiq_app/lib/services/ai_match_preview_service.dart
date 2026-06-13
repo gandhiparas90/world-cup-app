@@ -56,42 +56,79 @@ class GeminiAiMatchPreviewService implements AiMatchPreviewService {
   GeminiAiMatchPreviewService({
     required this.apiKey,
     this.model = 'gemini-3.5-flash',
+    this.proxyUrl = '',
     GeminiHttpPost? post,
     this.fallback = const FallbackAiMatchPreviewService(),
   }) : _post = post ?? http.post;
 
   final String apiKey;
   final String model;
+  final String proxyUrl;
   final AiMatchPreviewService fallback;
   final GeminiHttpPost _post;
 
   @override
   Future<AiMatchPreview> generate(AiPreviewRequest request) async {
-    if (apiKey.trim().isEmpty) {
-      return fallback.generate(request);
+    if (proxyUrl.trim().isEmpty && apiKey.trim().isEmpty) {
+      return buildFallbackPreview(
+        request,
+        source: 'Offline AI draft - missing Gemini key',
+      );
     }
 
     try {
+      final target = _requestUri();
       final response = await _post(
-        Uri.parse(
-          'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent',
-        ),
-        headers: {'Content-Type': 'application/json', 'x-goog-api-key': apiKey},
+        target,
+        headers: _headersFor(target),
         body: jsonEncode(buildGeminiPayload(request)),
       );
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        return fallback.generate(request);
+        return buildFallbackPreview(
+          request,
+          source: 'Offline AI draft - Gemini HTTP ${response.statusCode}',
+        );
       }
 
       return previewFromGeminiResponse(
         response.body,
         request: request,
-        source: 'Gemini $model',
+        source: proxyUrl.trim().isEmpty
+            ? 'Gemini $model'
+            : 'Gemini $model via local proxy',
       );
-    } catch (_) {
-      return fallback.generate(request);
+    } catch (error) {
+      final reason = _fallbackReason(error);
+      // Kept intentionally key-free. Browser console should explain fallback.
+      // ignore: avoid_print
+      print('Gemini preview failed: $reason');
+      return buildFallbackPreview(
+        request,
+        source: 'Offline AI draft - $reason',
+      );
     }
+  }
+
+  Uri _requestUri() {
+    if (proxyUrl.trim().isEmpty) {
+      return Uri.parse(
+        'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent',
+      );
+    }
+
+    final uri = Uri.parse(proxyUrl);
+    return uri.replace(
+      queryParameters: {...uri.queryParameters, 'model': model},
+    );
+  }
+
+  Map<String, String> _headersFor(Uri target) {
+    final headers = {'Content-Type': 'application/json'};
+    if (target.host == 'generativelanguage.googleapis.com') {
+      headers['x-goog-api-key'] = apiKey;
+    }
+    return headers;
   }
 }
 
@@ -101,7 +138,7 @@ Map<String, Object?> buildGeminiPayload(AiPreviewRequest request) {
       'parts': [
         {
           'text':
-              'You write concise football match previews for a student prototype. '
+              'You write concise football match previews for MatchIQ. '
               'Use only the supplied local app data. Do not claim live news, official odds, or certainty. '
               'Return only valid JSON with these string fields: headline, tactical_summary, '
               'prediction_rationale, watch_note, disclaimer; and key_players as a list of 2 to 4 strings.',
@@ -200,13 +237,13 @@ AiMatchPreview buildFallbackPreview(
               )
               .toList(),
     predictionRationale:
-        'The prototype model projects ${request.prediction.scoreline} with ${request.prediction.homeWinPercent}% ${request.home.code} win, '
+        'MatchIQ projects ${request.prediction.scoreline} with ${request.prediction.homeWinPercent}% ${request.home.code} win, '
         '${request.prediction.drawPercent}% draw, and ${request.prediction.awayWinPercent}% ${request.away.code} win. $drawRisk',
     watchNote: request.viewingLine.isEmpty
         ? '${request.match.broadcastChannel} coverage is listed in the local fixture data.'
         : request.viewingLine,
     disclaimer:
-        'AI-assisted prototype summary based on local app data. Not betting advice, official probabilities, or live team news.',
+        'AI-generated from local match data. Not betting advice, official probabilities, or live team news.',
     source: source,
     createdAt: clock?.call() ?? DateTime.now(),
   );
@@ -275,4 +312,23 @@ List<String> _fallbackKeyPlayers(AiPreviewRequest request) {
     '${request.home.name}: ${request.home.formSummary}',
     '${request.away.name}: ${request.away.formSummary}',
   ];
+}
+
+String _fallbackReason(Object error) {
+  if (error is http.ClientException) {
+    return 'browser/network request failed';
+  }
+  if (error is FormatException) {
+    return 'Gemini response parse failed';
+  }
+
+  final message = error.toString();
+  if (message.contains('XMLHttpRequest') ||
+      message.contains('Failed to fetch')) {
+    return 'browser/network request failed';
+  }
+  if (message.contains('FormatException')) {
+    return 'Gemini response parse failed';
+  }
+  return 'Gemini request failed';
 }
