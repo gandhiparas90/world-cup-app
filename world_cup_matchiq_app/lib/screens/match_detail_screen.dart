@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../data/seed_data.dart';
+import '../models/player.dart';
 import '../models/saved_prediction.dart';
+import '../models/team.dart';
 import '../models/world_cup_match.dart';
 import '../widgets/prediction_summary.dart';
 import '../widgets/scorer_likelihood_list.dart';
@@ -9,31 +10,33 @@ import '../widgets/scorer_likelihood_list.dart';
 class MatchDetailScreen extends StatelessWidget {
   const MatchDetailScreen({
     required this.match,
+    required this.home,
+    required this.away,
+    required this.players,
     required this.onSavePrediction,
     super.key,
   });
 
   final WorldCupMatch match;
-  final ValueChanged<SavedPrediction> onSavePrediction;
+  final Team home;
+  final Team away;
+  final List<Player> players;
+  final Future<void> Function(SavedPrediction prediction) onSavePrediction;
 
   @override
   Widget build(BuildContext context) {
-    final home = SeedData.teamById(match.homeTeamId);
-    final away = SeedData.teamById(match.awayTeamId);
     final prediction = estimatePrototypePrediction(home, away);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('${home.code} vs ${away.code}'),
-      ),
+      appBar: AppBar(title: Text('${home.code} vs ${away.code}')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Text(
             '${home.flagLabel} ${home.name} vs ${away.flagLabel} ${away.name}',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 8),
           Text('${match.stage} - ${match.kickoffLabel} - ${match.venue}'),
@@ -47,11 +50,11 @@ class MatchDetailScreen extends StatelessWidget {
           const SizedBox(height: 12),
           PredictionSummary(home: home, away: away),
           const SizedBox(height: 12),
-          ScorerLikelihoodList(players: SeedData.playersForMatch(match.id)),
+          ScorerLikelihoodList(players: players),
           const SizedBox(height: 16),
           FilledButton.icon(
-            onPressed: () {
-              onSavePrediction(
+            onPressed: () async {
+              await onSavePrediction(
                 SavedPrediction(
                   matchId: match.id,
                   matchLabel: '${home.name} vs ${away.name}',
@@ -60,7 +63,9 @@ class MatchDetailScreen extends StatelessWidget {
                   createdAt: DateTime.now(),
                 ),
               );
-              Navigator.of(context).pop();
+              if (context.mounted) {
+                Navigator.of(context).pop();
+              }
             },
             icon: const Icon(Icons.bookmark_add),
             label: const Text('Save prediction'),
@@ -94,9 +99,9 @@ class _TeamComparison extends StatelessWidget {
           children: [
             Text(
               'Style comparison',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 12),
             Text('$homeName: $homeValue'),

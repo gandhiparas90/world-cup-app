@@ -16,7 +16,9 @@ void main() {
         createdAt: DateTime(2026, 6, 13, 14),
       );
 
-      final restored = SavedPrediction.fromStorageMap(prediction.toStorageMap());
+      final restored = SavedPrediction.fromStorageMap(
+        prediction.toStorageMap(),
+      );
 
       expect(restored.matchId, prediction.matchId);
       expect(restored.matchLabel, prediction.matchLabel);
@@ -25,39 +27,44 @@ void main() {
       expect(restored.createdAt, prediction.createdAt);
     });
 
-    test('Hive repository persists saved predictions after reopening the box', () async {
-      final tempDir = await Directory.systemTemp.createTemp('matchiq_hive_test_');
-      Hive.init(tempDir.path);
-
-      try {
-        var box = await Hive.openBox<dynamic>('saved_predictions_test');
-        var repository = HiveSavedPredictionRepository(box: box);
-        final prediction = SavedPrediction(
-          matchId: 'arg-fra',
-          matchLabel: 'Argentina vs France',
-          scoreline: 'Argentina 2-3 France',
-          confidence: 'Low',
-          createdAt: DateTime(2026, 6, 13, 14),
+    test(
+      'Hive repository persists saved predictions after reopening the box',
+      () async {
+        final tempDir = await Directory.systemTemp.createTemp(
+          'matchiq_hive_test_',
         );
+        Hive.init(tempDir.path);
 
-        await repository.save(prediction);
-        await box.close();
+        try {
+          var box = await Hive.openBox<dynamic>('saved_predictions_test');
+          var repository = HiveSavedPredictionRepository(box: box);
+          final prediction = SavedPrediction(
+            matchId: 'arg-fra',
+            matchLabel: 'Argentina vs France',
+            scoreline: 'Argentina 2-3 France',
+            confidence: 'Low',
+            createdAt: DateTime(2026, 6, 13, 14),
+          );
 
-        box = await Hive.openBox<dynamic>('saved_predictions_test');
-        repository = HiveSavedPredictionRepository(box: box);
-        final saved = await repository.load();
+          await repository.save(prediction);
+          await box.close();
 
-        expect(saved, hasLength(1));
-        expect(saved.single.matchId, 'arg-fra');
-        expect(saved.single.scoreline, 'Argentina 2-3 France');
+          box = await Hive.openBox<dynamic>('saved_predictions_test');
+          repository = HiveSavedPredictionRepository(box: box);
+          final saved = await repository.load();
 
-        await repository.clear();
-        expect(await repository.load(), isEmpty);
-        await box.close();
-      } finally {
-        await Hive.close();
-        await tempDir.delete(recursive: true);
-      }
-    });
+          expect(saved, hasLength(1));
+          expect(saved.single.matchId, 'arg-fra');
+          expect(saved.single.scoreline, 'Argentina 2-3 France');
+
+          await repository.clear();
+          expect(await repository.load(), isEmpty);
+          await box.close();
+        } finally {
+          await Hive.close();
+          await tempDir.delete(recursive: true);
+        }
+      },
+    );
   });
 }

@@ -5,10 +5,12 @@ import '../models/saved_prediction.dart';
 class SavedPredictionsScreen extends StatelessWidget {
   const SavedPredictionsScreen({
     required this.predictions,
+    required this.onClearPredictions,
     super.key,
   });
 
   final List<SavedPrediction> predictions;
+  final Future<void> Function() onClearPredictions;
 
   @override
   Widget build(BuildContext context) {
@@ -17,9 +19,9 @@ class SavedPredictionsScreen extends StatelessWidget {
       children: [
         Text(
           'Saved predictions',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 12),
         if (predictions.isEmpty)
@@ -30,18 +32,30 @@ class SavedPredictionsScreen extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           )
-        else
+        else ...[
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              onPressed: onClearPredictions,
+              icon: const Icon(Icons.delete_outline),
+              label: const Text('Clear saved predictions'),
+            ),
+          ),
+          const SizedBox(height: 12),
           for (final prediction in predictions)
             Card(
               margin: const EdgeInsets.only(bottom: 12),
               child: ListTile(
                 title: Text(prediction.matchLabel),
-                subtitle: Text('${prediction.scoreline} - ${prediction.confidence} confidence'),
+                subtitle: Text(
+                  '${prediction.scoreline} - ${prediction.confidence} confidence',
+                ),
                 trailing: Text(
                   '${prediction.createdAt.hour.toString().padLeft(2, '0')}:${prediction.createdAt.minute.toString().padLeft(2, '0')}',
                 ),
               ),
             ),
+        ],
       ],
     );
   }

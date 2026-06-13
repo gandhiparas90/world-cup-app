@@ -205,7 +205,8 @@ class SeedData {
       stage: 'Group Stage',
       kickoffLabel: 'Sat 7:00 PM',
       venue: 'MetLife Stadium',
-      storyline: 'A heavyweight rematch built around control versus transition speed.',
+      storyline:
+          'A heavyweight rematch built around control versus transition speed.',
     ),
     WorldCupMatch(
       id: 'bra-eng',
@@ -223,7 +224,8 @@ class SeedData {
       stage: 'Group Stage',
       kickoffLabel: 'Tue 8:00 PM',
       venue: 'SoFi Stadium',
-      storyline: 'The hosts test their pressing game against Portugal possession.',
+      storyline:
+          'The hosts test their pressing game against Portugal possession.',
     ),
   ];
 
@@ -242,6 +244,8 @@ class SeedData {
   static List<Player> playersForMatch(String matchId) {
     final match = matchById(matchId);
     final matchTeamIds = {match.homeTeamId, match.awayTeamId};
-    return players.where((player) => matchTeamIds.contains(player.teamId)).toList();
+    return players
+        .where((player) => matchTeamIds.contains(player.teamId))
+        .toList();
   }
 }

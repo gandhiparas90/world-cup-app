@@ -49,7 +49,10 @@ void main() {
         theme: MatchIqTheme.light(),
         home: MatchDetailScreen(
           match: SeedData.matchById('arg-fra'),
-          onSavePrediction: (_) {},
+          home: SeedData.teamById('arg'),
+          away: SeedData.teamById('fra'),
+          players: SeedData.playersForMatch('arg-fra'),
+          onSavePrediction: (_) async {},
         ),
       ),
     );
@@ -84,6 +87,7 @@ void main() {
                 createdAt: DateTime(2026, 6, 13, 14),
               ),
             ],
+            onClearPredictions: () async {},
           ),
         ),
       ),

@@ -9,13 +9,12 @@ import '../models/world_cup_match.dart';
 
 class MatchIqController extends ChangeNotifier {
   MatchIqController({
-    required MatchRepository matchRepository,
-    required SavedPredictionRepository savedPredictionRepository,
-  })  : _matchRepository = matchRepository,
-        _savedPredictionRepository = savedPredictionRepository;
+    required this.matchRepository,
+    required this.savedPredictionRepository,
+  });
 
-  final MatchRepository _matchRepository;
-  final SavedPredictionRepository _savedPredictionRepository;
+  final MatchRepository matchRepository;
+  final SavedPredictionRepository savedPredictionRepository;
 
   var _isLoading = true;
   var _selectedIndex = 0;
@@ -25,23 +24,24 @@ class MatchIqController extends ChangeNotifier {
 
   int get selectedIndex => _selectedIndex;
 
-  List<WorldCupMatch> get matches => _matchRepository.matches;
+  List<WorldCupMatch> get matches => matchRepository.matches;
 
-  List<SavedPrediction> get savedPredictions => List.unmodifiable(_savedPredictions);
+  List<SavedPrediction> get savedPredictions =>
+      List.unmodifiable(_savedPredictions);
 
   Team teamById(String id) {
-    return _matchRepository.teamById(id);
+    return matchRepository.teamById(id);
   }
 
   List<Player> playersForMatch(String matchId) {
-    return _matchRepository.playersForMatch(matchId);
+    return matchRepository.playersForMatch(matchId);
   }
 
   Future<void> load() async {
     _isLoading = true;
     notifyListeners();
 
-    _savedPredictions = await _savedPredictionRepository.load();
+    _savedPredictions = await savedPredictionRepository.load();
     _isLoading = false;
     notifyListeners();
   }
@@ -55,14 +55,14 @@ class MatchIqController extends ChangeNotifier {
   }
 
   Future<void> savePrediction(SavedPrediction prediction) async {
-    await _savedPredictionRepository.save(prediction);
-    _savedPredictions = await _savedPredictionRepository.load();
+    await savedPredictionRepository.save(prediction);
+    _savedPredictions = await savedPredictionRepository.load();
     _selectedIndex = 1;
     notifyListeners();
   }
 
   Future<void> clearSavedPredictions() async {
-    await _savedPredictionRepository.clear();
+    await savedPredictionRepository.clear();
     _savedPredictions = [];
     notifyListeners();
   }

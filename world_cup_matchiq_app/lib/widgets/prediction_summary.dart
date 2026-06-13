@@ -13,17 +13,20 @@ class PrototypePrediction {
 }
 
 PrototypePrediction estimatePrototypePrediction(Team home, Team away) {
-  final homeRaw = home.avgGoalsFor + ((home.attackRating - away.defenseRating) / 30);
-  final awayRaw = away.avgGoalsFor + ((away.attackRating - home.defenseRating) / 30);
+  final homeRaw =
+      home.avgGoalsFor + ((home.attackRating - away.defenseRating) / 30);
+  final awayRaw =
+      away.avgGoalsFor + ((away.attackRating - home.defenseRating) / 30);
   final homeScore = homeRaw.clamp(0.0, 4.0).round();
   final awayScore = awayRaw.clamp(0.0, 4.0).round();
-  final ratingGap = (home.attackRating + home.defenseRating + home.formPoints) -
+  final ratingGap =
+      (home.attackRating + home.defenseRating + home.formPoints) -
       (away.attackRating + away.defenseRating + away.formPoints);
   final confidence = ratingGap.abs() > 8
       ? 'High'
       : ratingGap.abs() > 3
-          ? 'Medium'
-          : 'Low';
+      ? 'Medium'
+      : 'Low';
 
   return PrototypePrediction(
     scoreline: '${home.name} $homeScore-$awayScore ${away.name}',
@@ -32,11 +35,7 @@ PrototypePrediction estimatePrototypePrediction(Team home, Team away) {
 }
 
 class PredictionSummary extends StatelessWidget {
-  const PredictionSummary({
-    required this.home,
-    required this.away,
-    super.key,
-  });
+  const PredictionSummary({required this.home, required this.away, super.key});
 
   final Team home;
   final Team away;
@@ -53,19 +52,21 @@ class PredictionSummary extends StatelessWidget {
           children: [
             Text(
               'Prototype scoreline',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 8),
             Text(
               prediction.scoreline,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 8),
-            Text('${prediction.confidence} confidence estimate based on seeded team ratings.'),
+            Text(
+              '${prediction.confidence} confidence estimate based on seeded team ratings.',
+            ),
           ],
         ),
       ),

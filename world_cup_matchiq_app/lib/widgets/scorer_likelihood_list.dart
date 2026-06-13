@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/player.dart';
 
 class ScorerLikelihoodList extends StatelessWidget {
-  const ScorerLikelihoodList({
-    required this.players,
-    super.key,
-  });
+  const ScorerLikelihoodList({required this.players, super.key});
 
   final List<Player> players;
 
@@ -24,9 +21,9 @@ class ScorerLikelihoodList extends StatelessWidget {
           children: [
             Text(
               'Likely scorers',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 8),
             for (final player in topPlayers)

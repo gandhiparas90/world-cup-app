@@ -3,8 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:world_cup_matchiq/app/world_cup_matchiq_app.dart';
 
 void main() {
-  testWidgets('renders app shell with match and saved prediction tabs', (tester) async {
+  testWidgets('renders app shell with match and saved prediction tabs', (
+    tester,
+  ) async {
     await tester.pumpWidget(const WorldCupMatchIqEntryPoint());
+    await tester.pumpAndSettle();
 
     expect(find.text('World Cup MatchIQ'), findsOneWidget);
     expect(find.text('Matches'), findsWidgets);
@@ -14,6 +17,7 @@ void main() {
 
   testWidgets('opens match detail and saves a prediction', (tester) async {
     await tester.pumpWidget(const WorldCupMatchIqEntryPoint());
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Argentina vs France'));
     await tester.pumpAndSettle();
@@ -31,5 +35,32 @@ void main() {
 
     expect(find.text('Saved predictions'), findsOneWidget);
     expect(find.text('Argentina vs France'), findsOneWidget);
+  });
+
+  testWidgets('clears saved predictions from the saved tab', (tester) async {
+    await tester.pumpWidget(const WorldCupMatchIqEntryPoint());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Argentina vs France'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Save prediction'),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.text('Save prediction'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Argentina vs France'), findsOneWidget);
+
+    await tester.tap(find.text('Clear saved predictions'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'No saved predictions yet. Open a match and save the prototype estimate.',
+      ),
+      findsOneWidget,
+    );
   });
 }

@@ -20,7 +20,9 @@ class InMemorySavedPredictionRepository implements SavedPredictionRepository {
 
   @override
   Future<void> save(SavedPrediction prediction) async {
-    _predictions.removeWhere((saved) => saved.storageKey == prediction.storageKey);
+    _predictions.removeWhere(
+      (saved) => saved.storageKey == prediction.storageKey,
+    );
     _predictions.add(prediction);
   }
 
@@ -31,15 +33,15 @@ class InMemorySavedPredictionRepository implements SavedPredictionRepository {
 }
 
 class HiveSavedPredictionRepository implements SavedPredictionRepository {
-  HiveSavedPredictionRepository({required Box<dynamic> box}) : _box = box;
+  HiveSavedPredictionRepository({required this.box});
 
   static const boxName = 'saved_predictions';
 
-  final Box<dynamic> _box;
+  final Box<dynamic> box;
 
   @override
   Future<List<SavedPrediction>> load() async {
-    final predictions = _box.values
+    final predictions = box.values
         .whereType<Map<dynamic, dynamic>>()
         .map(SavedPrediction.fromStorageMap)
         .toList();
@@ -48,12 +50,12 @@ class HiveSavedPredictionRepository implements SavedPredictionRepository {
 
   @override
   Future<void> save(SavedPrediction prediction) async {
-    await _box.put(prediction.storageKey, prediction.toStorageMap());
+    await box.put(prediction.storageKey, prediction.toStorageMap());
   }
 
   @override
   Future<void> clear() async {
-    await _box.clear();
+    await box.clear();
   }
 }
 
