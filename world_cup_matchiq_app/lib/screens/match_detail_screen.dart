@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../models/player.dart';
 import '../models/saved_prediction.dart';
 import '../models/team.dart';
+import '../models/user_profile.dart';
 import '../models/world_cup_match.dart';
+import '../utils/match_viewing.dart';
 import '../widgets/prediction_summary.dart';
 import '../widgets/scorer_likelihood_list.dart';
 
@@ -14,6 +16,7 @@ class MatchDetailScreen extends StatelessWidget {
     required this.away,
     required this.players,
     required this.onSavePrediction,
+    this.profile,
     super.key,
   });
 
@@ -22,6 +25,7 @@ class MatchDetailScreen extends StatelessWidget {
   final Team away;
   final List<Player> players;
   final Future<void> Function(SavedPrediction prediction) onSavePrediction;
+  final UserProfile? profile;
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +50,10 @@ class MatchDetailScreen extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 16),
+          if (profile != null) ...[
+            _ViewingContext(match: match, profile: profile!),
+            const SizedBox(height: 12),
+          ],
           _FixtureContext(match: match, home: home, away: away),
           const SizedBox(height: 12),
           _TeamComparison(
@@ -78,6 +86,40 @@ class MatchDetailScreen extends StatelessWidget {
             label: const Text('Save prediction'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ViewingContext extends StatelessWidget {
+  const _ViewingContext({required this.match, required this.profile});
+
+  final WorldCupMatch match;
+  final UserProfile profile;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Viewing',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 8),
+            Text(viewingLine(match, profile.countryCode, profile.timezone)),
+            const SizedBox(height: 4),
+            Text(
+              '${countryLabel(profile.countryCode)} - ${timezoneLabel(profile.timezone)}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
       ),
     );
   }

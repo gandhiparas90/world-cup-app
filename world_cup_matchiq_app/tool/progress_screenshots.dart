@@ -3,12 +3,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:world_cup_matchiq/app/theme.dart';
 import 'package:world_cup_matchiq/app/world_cup_matchiq_app.dart';
+import 'package:world_cup_matchiq/data/user_profile_repository.dart';
 import 'package:world_cup_matchiq/data/seed_data.dart';
 import 'package:world_cup_matchiq/models/saved_prediction.dart';
+import 'package:world_cup_matchiq/models/user_profile.dart';
 import 'package:world_cup_matchiq/screens/match_detail_screen.dart';
-import 'package:world_cup_matchiq/screens/saved_predictions_screen.dart';
+import 'package:world_cup_matchiq/screens/profile_screen.dart';
 import 'package:world_cup_matchiq/widgets/prediction_summary.dart';
 
 const screenshotStage = String.fromEnvironment(
@@ -20,6 +23,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() async {
+    GoogleFonts.config.allowRuntimeFetching = false;
     await _loadScreenshotFonts();
   });
 
@@ -33,15 +37,40 @@ void main() {
     binding.platformDispatcher.clearTextScaleFactorTestValue();
   });
 
-  testWidgets('captures $screenshotStage matches dashboard', (tester) async {
+  testWidgets('captures $screenshotStage setup home', (tester) async {
     await _setPhoneViewport(tester);
-    await tester.pumpWidget(const WorldCupMatchIqEntryPoint());
+    await tester.pumpWidget(
+      WorldCupMatchIqEntryPoint(
+        theme: MatchIqTheme.light(useGoogleFonts: false),
+      ),
+    );
     await tester.pumpAndSettle();
 
     await expectLater(
       find.byType(WorldCupMatchIqEntryPoint),
       matchesGoldenFile(
-        '../../docs/screenshots/$screenshotStage/01_matches_dashboard.png',
+        '../../docs/screenshots/$screenshotStage/01_home_setup.png',
+      ),
+    );
+  });
+
+  testWidgets('captures $screenshotStage personalized home', (tester) async {
+    await _setPhoneViewport(tester);
+    final profileRepository = InMemoryUserProfileRepository();
+    await profileRepository.save(_sampleProfile());
+
+    await tester.pumpWidget(
+      WorldCupMatchIqEntryPoint(
+        userProfileRepository: profileRepository,
+        theme: MatchIqTheme.light(useGoogleFonts: false),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(WorldCupMatchIqEntryPoint),
+      matchesGoldenFile(
+        '../../docs/screenshots/$screenshotStage/02_home_personalized.png',
       ),
     );
   });
@@ -51,12 +80,13 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: MatchIqTheme.light(),
+        theme: MatchIqTheme.light(useGoogleFonts: false),
         home: MatchDetailScreen(
           match: SeedData.matchById('bra-mar'),
           home: SeedData.teamById('bra'),
           away: SeedData.teamById('mar'),
           players: SeedData.playersForMatch('bra-mar'),
+          profile: _sampleProfile(),
           onSavePrediction: (_) async {},
         ),
       ),
@@ -66,12 +96,14 @@ void main() {
     await expectLater(
       find.byType(MaterialApp),
       matchesGoldenFile(
-        '../../docs/screenshots/$screenshotStage/02_match_detail.png',
+        '../../docs/screenshots/$screenshotStage/03_match_detail.png',
       ),
     );
   });
 
-  testWidgets('captures $screenshotStage saved predictions', (tester) async {
+  testWidgets('captures $screenshotStage profile with saved prediction', (
+    tester,
+  ) async {
     await _setPhoneViewport(tester);
     final match = SeedData.matchById('bra-mar');
     final home = SeedData.teamById(match.homeTeamId);
@@ -81,11 +113,13 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: MatchIqTheme.light(),
+        theme: MatchIqTheme.light(useGoogleFonts: false),
         home: Scaffold(
           appBar: AppBar(title: const Text('World Cup MatchIQ')),
-          body: SavedPredictionsScreen(
-            predictions: [
+          body: ProfileScreen(
+            profile: _sampleProfile(),
+            teams: SeedData.teams,
+            savedPredictions: [
               SavedPrediction(
                 matchId: match.id,
                 matchLabel: '${home.name} vs ${away.name}',
@@ -94,7 +128,9 @@ void main() {
                 createdAt: DateTime(2026, 6, 13, 14),
               ),
             ],
-            onClearPredictions: () async {},
+            onSaveProfile: (_) async {},
+            onResetProfile: () async {},
+            onClearSavedPredictions: () async {},
           ),
         ),
       ),
@@ -104,10 +140,21 @@ void main() {
     await expectLater(
       find.byType(MaterialApp),
       matchesGoldenFile(
-        '../../docs/screenshots/$screenshotStage/03_saved_predictions.png',
+        '../../docs/screenshots/$screenshotStage/04_profile_saved.png',
       ),
     );
   });
+}
+
+UserProfile _sampleProfile() {
+  return UserProfile(
+    displayName: 'World Cup fan',
+    countryCode: 'US',
+    timezone: 'America/Chicago',
+    favoriteTeamId: 'por',
+    createdAt: DateTime(2026, 6, 13, 10),
+    updatedAt: DateTime(2026, 6, 13, 10),
+  );
 }
 
 Future<void> _loadScreenshotFonts() async {
@@ -124,6 +171,12 @@ Future<void> _loadScreenshotFonts() async {
   final iconsLoader = FontLoader('MaterialIcons')
     ..addFont(_fontData('$materialFontPath/MaterialIcons-Regular.otf'));
   await iconsLoader.load();
+
+  const lucideFontPath =
+      '/Users/parasgandhi/.pub-cache/hosted/pub.dev/lucide_icons_flutter-3.1.14+2/assets/lucide.ttf';
+  final lucideLoader = FontLoader('packages/lucide_icons_flutter/Lucide')
+    ..addFont(_fontData(lucideFontPath));
+  await lucideLoader.load();
 }
 
 Future<ByteData> _fontData(String path) async {

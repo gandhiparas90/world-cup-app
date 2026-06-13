@@ -9,6 +9,7 @@ class MatchCard extends StatelessWidget {
     required this.home,
     required this.away,
     required this.onTap,
+    this.metaLine,
     super.key,
   });
 
@@ -16,6 +17,7 @@ class MatchCard extends StatelessWidget {
   final Team home;
   final Team away;
   final VoidCallback onTap;
+  final String? metaLine;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +45,7 @@ class MatchCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              Text('${match.stage} - ${match.kickoffLabel}'),
+              Text(metaLine ?? '${match.stage} - ${match.kickoffLabel}'),
               const SizedBox(height: 4),
               Text(match.venue),
               const SizedBox(height: 4),

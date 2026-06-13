@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../data/match_repository.dart';
 import '../data/saved_prediction_repository.dart';
 import '../data/user_profile_repository.dart';
+import '../screens/home_screen.dart';
 import '../screens/matches_screen.dart';
-import '../screens/saved_predictions_screen.dart';
+import '../screens/profile_screen.dart';
 import '../state/matchiq_controller.dart';
 import 'theme.dart';
 
@@ -14,12 +16,14 @@ class WorldCupMatchIqEntryPoint extends StatelessWidget {
     this.matchRepository = const MatchRepository.seeded(),
     this.savedPredictionRepository,
     this.userProfileRepository,
+    this.theme,
     super.key,
   });
 
   final MatchRepository matchRepository;
   final SavedPredictionRepository? savedPredictionRepository;
   final UserProfileRepository? userProfileRepository;
+  final ThemeData? theme;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +38,7 @@ class WorldCupMatchIqEntryPoint extends StatelessWidget {
       child: MaterialApp(
         title: 'World Cup MatchIQ',
         debugShowCheckedModeBanner: false,
-        theme: MatchIqTheme.light(),
+        theme: theme ?? MatchIqTheme.light(),
         home: const WorldCupMatchIqApp(),
       ),
     );
@@ -48,15 +52,30 @@ class WorldCupMatchIqApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = context.watch<MatchIqController>();
     final screens = [
+      HomeScreen(
+        matches: controller.matches,
+        teams: controller.teams,
+        teamById: controller.teamById,
+        profile: controller.profile,
+        savedPredictions: controller.savedPredictions,
+        onSaveProfile: controller.saveProfile,
+        onOpenFixtures: () => controller.selectTab(1),
+        onOpenProfile: () => controller.selectTab(2),
+      ),
       MatchesScreen(
         matches: controller.matches,
         teamById: controller.teamById,
         playersForMatch: controller.playersForMatch,
+        profile: controller.profile,
         onSavePrediction: controller.savePrediction,
       ),
-      SavedPredictionsScreen(
-        predictions: controller.savedPredictions,
-        onClearPredictions: controller.clearSavedPredictions,
+      ProfileScreen(
+        profile: controller.profile,
+        teams: controller.teams,
+        savedPredictions: controller.savedPredictions,
+        onSaveProfile: controller.saveProfile,
+        onResetProfile: controller.resetProfile,
+        onClearSavedPredictions: controller.clearSavedPredictions,
       ),
     ];
 
@@ -70,14 +89,19 @@ class WorldCupMatchIqApp extends StatelessWidget {
         onDestinationSelected: controller.selectTab,
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.sports_soccer_outlined),
-            selectedIcon: Icon(Icons.sports_soccer),
-            label: 'Matches',
+            icon: Icon(LucideIcons.house),
+            selectedIcon: Icon(LucideIcons.house),
+            label: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(Icons.bookmark_border),
-            selectedIcon: Icon(Icons.bookmark),
-            label: 'Saved',
+            icon: Icon(LucideIcons.calendarDays),
+            selectedIcon: Icon(LucideIcons.calendarDays),
+            label: 'Fixtures',
+          ),
+          NavigationDestination(
+            icon: Icon(LucideIcons.userRound),
+            selectedIcon: Icon(LucideIcons.userRound),
+            label: 'Profile',
           ),
         ],
       ),

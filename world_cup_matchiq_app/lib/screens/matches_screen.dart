@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../models/player.dart';
 import '../models/saved_prediction.dart';
 import '../models/team.dart';
+import '../models/user_profile.dart';
 import '../models/world_cup_match.dart';
+import '../utils/match_viewing.dart';
 import '../widgets/match_card.dart';
 import 'match_detail_screen.dart';
 
@@ -13,6 +15,7 @@ class MatchesScreen extends StatelessWidget {
     required this.teamById,
     required this.playersForMatch,
     required this.onSavePrediction,
+    this.profile,
     super.key,
   });
 
@@ -20,6 +23,7 @@ class MatchesScreen extends StatelessWidget {
   final Team Function(String id) teamById;
   final List<Player> Function(String matchId) playersForMatch;
   final Future<void> Function(SavedPrediction prediction) onSavePrediction;
+  final UserProfile? profile;
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +47,9 @@ class MatchesScreen extends StatelessWidget {
             match: match,
             home: teamById(match.homeTeamId),
             away: teamById(match.awayTeamId),
+            metaLine: profile == null
+                ? null
+                : '${match.stage} - ${viewingLine(match, profile!.countryCode, profile!.timezone)}',
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -51,6 +58,7 @@ class MatchesScreen extends StatelessWidget {
                     home: teamById(match.homeTeamId),
                     away: teamById(match.awayTeamId),
                     players: playersForMatch(match.id),
+                    profile: profile,
                     onSavePrediction: onSavePrediction,
                   ),
                 ),

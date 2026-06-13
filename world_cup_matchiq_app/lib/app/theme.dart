@@ -5,8 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 class MatchIqTheme {
   const MatchIqTheme._();
 
-  static ThemeData light() {
-    final textTheme = GoogleFonts.interTextTheme();
+  static ThemeData light({bool useGoogleFonts = true}) {
+    final textTheme = useGoogleFonts ? GoogleFonts.interTextTheme() : null;
 
     final theme = FlexThemeData.light(
       scheme: FlexScheme.greenM3,
@@ -26,7 +26,7 @@ class MatchIqTheme {
       ),
       useMaterial3: true,
       scaffoldBackground: const Color(0xFFF7FAFC),
-      fontFamily: textTheme.bodyMedium?.fontFamily,
+      fontFamily: textTheme?.bodyMedium?.fontFamily,
       textTheme: textTheme,
     );
 

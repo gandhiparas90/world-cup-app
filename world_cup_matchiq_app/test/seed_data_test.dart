@@ -11,6 +11,7 @@ void main() {
       'hai-sco',
       'aus-tur',
     ]);
+    expect(SeedData.teamById('por').name, 'Portugal');
   });
 
   test(
