@@ -74,6 +74,12 @@ class MatchDetailScreen extends StatelessWidget {
             _ViewingContext(match: match, profile: profile!),
             const SizedBox(height: 12),
           ],
+          PredictionSummary(prediction: prediction, home: home, away: away),
+          const SizedBox(height: 12),
+          _PredictionFactors(prediction: prediction),
+          const SizedBox(height: 12),
+          ScorerLikelihoodList(scorers: prediction.scorers),
+          const SizedBox(height: 12),
           _FixtureContext(match: match, home: home, away: away),
           const SizedBox(height: 12),
           _TeamComparison(
@@ -82,12 +88,6 @@ class MatchDetailScreen extends StatelessWidget {
             homeValue: home.style,
             awayValue: away.style,
           ),
-          const SizedBox(height: 12),
-          PredictionSummary(prediction: prediction, home: home, away: away),
-          const SizedBox(height: 12),
-          _PredictionFactors(prediction: prediction),
-          const SizedBox(height: 12),
-          ScorerLikelihoodList(scorers: prediction.scorers),
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: () async {

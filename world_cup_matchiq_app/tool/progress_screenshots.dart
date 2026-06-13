@@ -96,7 +96,7 @@ void main() {
 
     if (screenshotStage == 'stage2_5') {
       await tester.scrollUntilVisible(
-        find.text('Why this prediction?'),
+        find.text('Win / draw / loss probability'),
         240,
         scrollable: find.byType(Scrollable).last,
       );

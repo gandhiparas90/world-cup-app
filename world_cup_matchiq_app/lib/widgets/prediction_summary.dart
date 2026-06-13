@@ -76,17 +76,22 @@ class _OutcomeRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Win probability',
+          'Win / draw / loss probability',
           style: Theme.of(
             context,
           ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '${home.name} win ${prediction.homeWinPercent}% - Draw ${prediction.drawPercent}% - ${away.name} win ${prediction.awayWinPercent}%',
+          style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
               child: _ProbabilityPill(
-                label: home.code,
+                label: '${home.code} win',
                 value: prediction.homeWinPercent,
               ),
             ),
@@ -100,7 +105,7 @@ class _OutcomeRow extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: _ProbabilityPill(
-                label: away.code,
+                label: '${away.code} win',
                 value: prediction.awayWinPercent,
               ),
             ),

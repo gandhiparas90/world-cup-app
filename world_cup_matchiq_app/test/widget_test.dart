@@ -63,7 +63,6 @@ void main() {
     await _openFixture(tester, 'Brazil vs Morocco');
 
     expect(find.text('Viewing'), findsOneWidget);
-    expect(find.text('Match context'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Prototype scoreline'),
       200,
@@ -72,7 +71,9 @@ void main() {
 
     expect(find.text('Prototype scoreline'), findsOneWidget);
     expect(find.textContaining('Not betting odds'), findsOneWidget);
-    expect(find.text('Win probability'), findsOneWidget);
+    expect(find.text('Win / draw / loss probability'), findsOneWidget);
+    expect(find.textContaining('Brazil win'), findsOneWidget);
+    expect(find.textContaining('Morocco win'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Why this prediction?'),
       200,
@@ -86,6 +87,12 @@ void main() {
       scrollable: find.byType(Scrollable).last,
     );
     expect(find.text('Likely scorers'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Match context'),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.text('Match context'), findsOneWidget);
 
     await tester.scrollUntilVisible(
       find.text('Save prediction'),
