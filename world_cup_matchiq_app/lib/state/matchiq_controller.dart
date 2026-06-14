@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart';
 
 import '../data/ai_preview_repository.dart';
+import '../data/fixture_result_repository.dart';
 import '../data/match_repository.dart';
 import '../data/saved_prediction_repository.dart';
 import '../data/user_profile_repository.dart';
 import '../models/ai_match_preview.dart';
+import '../models/fixture_result.dart';
 import '../models/group_info.dart';
 import '../models/player.dart';
 import '../models/saved_prediction.dart';
@@ -20,6 +22,7 @@ class MatchIqController extends ChangeNotifier {
     required this.savedPredictionRepository,
     required this.userProfileRepository,
     required this.aiPreviewRepository,
+    required this.fixtureResultRepository,
     required this.aiMatchPreviewService,
   });
 
@@ -27,12 +30,14 @@ class MatchIqController extends ChangeNotifier {
   final SavedPredictionRepository savedPredictionRepository;
   final UserProfileRepository userProfileRepository;
   final AiPreviewRepository aiPreviewRepository;
+  final FixtureResultRepository fixtureResultRepository;
   final AiMatchPreviewService aiMatchPreviewService;
 
   var _isLoading = true;
   var _selectedIndex = 0;
   List<SavedPrediction> _savedPredictions = [];
   List<AiMatchPreview> _aiPreviews = [];
+  List<FixtureResult> _fixtureResults = [];
   final Set<String> _generatingAiPreviewMatchIds = {};
   UserProfile? _profile;
 
@@ -44,14 +49,18 @@ class MatchIqController extends ChangeNotifier {
 
   List<GroupInfo> get groups => matchRepository.groups;
 
-  List<WorldCupMatch> get matches => matchRepository.matches;
+  List<WorldCupMatch> get matches =>
+      matchRepository.matches.map(_matchWithResultOverride).toList();
 
-  List<WorldCupMatch> get upcomingMatches => matchRepository.upcomingMatches;
+  List<WorldCupMatch> get upcomingMatches =>
+      matches.where((match) => match.isScheduled).take(12).toList();
 
   List<SavedPrediction> get savedPredictions =>
       List.unmodifiable(_savedPredictions);
 
   List<AiMatchPreview> get aiPreviews => List.unmodifiable(_aiPreviews);
+
+  List<FixtureResult> get fixtureResults => List.unmodifiable(_fixtureResults);
 
   UserProfile? get profile => _profile;
 
@@ -66,7 +75,10 @@ class MatchIqController extends ChangeNotifier {
   }
 
   List<WorldCupMatch> matchesForTeam(String teamId) {
-    return matchRepository.matchesForTeam(teamId);
+    return matchRepository
+        .matchesForTeam(teamId)
+        .map(_matchWithResultOverride)
+        .toList();
   }
 
   List<WatchOption> watchOptionsForMatch(String matchId) {
@@ -86,12 +98,26 @@ class MatchIqController extends ChangeNotifier {
     return _generatingAiPreviewMatchIds.contains(matchId);
   }
 
+  WorldCupMatch matchById(String id) {
+    return _matchWithResultOverride(matchRepository.matchById(id));
+  }
+
+  FixtureResult? fixtureResultForMatch(String matchId) {
+    for (final result in _fixtureResults) {
+      if (result.matchId == matchId) {
+        return result;
+      }
+    }
+    return null;
+  }
+
   Future<void> load() async {
     _isLoading = true;
     notifyListeners();
 
     _savedPredictions = await savedPredictionRepository.load();
     _aiPreviews = await aiPreviewRepository.load();
+    _fixtureResults = await fixtureResultRepository.load();
     _profile = await userProfileRepository.load();
     _isLoading = false;
     notifyListeners();
@@ -115,6 +141,18 @@ class MatchIqController extends ChangeNotifier {
   Future<void> clearSavedPredictions() async {
     await savedPredictionRepository.clear();
     _savedPredictions = [];
+    notifyListeners();
+  }
+
+  Future<void> saveFixtureResult(FixtureResult result) async {
+    await fixtureResultRepository.save(result);
+    _fixtureResults = await fixtureResultRepository.load();
+    notifyListeners();
+  }
+
+  Future<void> clearFixtureResult(String matchId) async {
+    await fixtureResultRepository.delete(matchId);
+    _fixtureResults = await fixtureResultRepository.load();
     notifyListeners();
   }
 
@@ -146,5 +184,18 @@ class MatchIqController extends ChangeNotifier {
     await userProfileRepository.clear();
     _profile = null;
     notifyListeners();
+  }
+
+  WorldCupMatch _matchWithResultOverride(WorldCupMatch match) {
+    final result = fixtureResultForMatch(match.id);
+    if (result == null) {
+      return match;
+    }
+    return match.withFinalScore(
+      homeScore: result.homeScore,
+      awayScore: result.awayScore,
+      sourceLabel: result.sourceLabel,
+      dataUpdatedLabel: result.updatedLabel,
+    );
   }
 }

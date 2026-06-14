@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/ai_match_preview.dart';
+import '../models/fixture_result.dart';
 import '../models/player.dart';
 import '../models/prediction_result.dart';
 import '../models/saved_prediction.dart';
@@ -20,6 +22,9 @@ class MatchDetailScreen extends StatelessWidget {
     required this.away,
     required this.players,
     required this.onSavePrediction,
+    required this.fixtureResult,
+    required this.onSaveFixtureResult,
+    required this.onClearFixtureResult,
     required this.aiPreview,
     required this.isGeneratingAiPreview,
     required this.onGenerateAiPreview,
@@ -32,6 +37,9 @@ class MatchDetailScreen extends StatelessWidget {
   final Team away;
   final List<Player> players;
   final Future<void> Function(SavedPrediction prediction) onSavePrediction;
+  final FixtureResult? fixtureResult;
+  final Future<void> Function(FixtureResult result) onSaveFixtureResult;
+  final Future<void> Function(String matchId) onClearFixtureResult;
   final AiMatchPreview? aiPreview;
   final bool isGeneratingAiPreview;
   final Future<void> Function(AiPreviewRequest request) onGenerateAiPreview;
@@ -89,6 +97,15 @@ class MatchDetailScreen extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 16),
+          _ResultUpdateCard(
+            match: match,
+            home: home,
+            away: away,
+            fixtureResult: fixtureResult,
+            onSaveFixtureResult: onSaveFixtureResult,
+            onClearFixtureResult: onClearFixtureResult,
+          ),
+          const SizedBox(height: 12),
           if (profile != null) ...[
             _ViewingContext(match: match, profile: profile!),
             const SizedBox(height: 12),
@@ -133,6 +150,249 @@ class MatchDetailScreen extends StatelessWidget {
             label: const Text('Save prediction'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ResultUpdateCard extends StatelessWidget {
+  const _ResultUpdateCard({
+    required this.match,
+    required this.home,
+    required this.away,
+    required this.fixtureResult,
+    required this.onSaveFixtureResult,
+    required this.onClearFixtureResult,
+  });
+
+  final WorldCupMatch match;
+  final Team home;
+  final Team away;
+  final FixtureResult? fixtureResult;
+  final Future<void> Function(FixtureResult result) onSaveFixtureResult;
+  final Future<void> Function(String matchId) onClearFixtureResult;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasFinalScore =
+        match.isCompleted && match.homeScore != null && match.awayScore != null;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.sports_score, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    hasFinalScore ? 'Final score' : 'Result update',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            if (hasFinalScore) ...[
+              Text(
+                '${home.code} ${match.homeScore} - ${match.awayScore} ${away.code}',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                fixtureResult == null
+                    ? 'Result from the bundled fixture snapshot.'
+                    : 'Local result override saved on this device.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${match.dataUpdatedLabel} - ${match.sourceLabel}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ] else ...[
+              Text(
+                'No final score stored yet. Mark this fixture final when the result is known.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton.icon(
+                  onPressed: () => _editResult(context),
+                  icon: const Icon(Icons.edit),
+                  label: Text(
+                    hasFinalScore ? 'Edit final score' : 'Mark final',
+                  ),
+                ),
+                if (fixtureResult != null)
+                  TextButton.icon(
+                    onPressed: () async {
+                      await onClearFixtureResult(match.id);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Local result cleared')),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.undo),
+                    label: const Text('Clear local result'),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _editResult(BuildContext context) async {
+    final result = await _showFixtureResultDialog(
+      context: context,
+      match: match,
+      home: home,
+      away: away,
+    );
+
+    if (result == null) {
+      return;
+    }
+
+    await onSaveFixtureResult(result);
+    if (context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Final score saved')));
+    }
+  }
+}
+
+Future<FixtureResult?> _showFixtureResultDialog({
+  required BuildContext context,
+  required WorldCupMatch match,
+  required Team home,
+  required Team away,
+}) async {
+  return showDialog<FixtureResult>(
+    context: context,
+    builder: (context) =>
+        _FixtureResultDialog(match: match, home: home, away: away),
+  );
+}
+
+class _FixtureResultDialog extends StatefulWidget {
+  const _FixtureResultDialog({
+    required this.match,
+    required this.home,
+    required this.away,
+  });
+
+  final WorldCupMatch match;
+  final Team home;
+  final Team away;
+
+  @override
+  State<_FixtureResultDialog> createState() => _FixtureResultDialogState();
+}
+
+class _FixtureResultDialogState extends State<_FixtureResultDialog> {
+  late final TextEditingController _homeController;
+  late final TextEditingController _awayController;
+  String? _errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    _homeController = TextEditingController(
+      text: widget.match.homeScore?.toString() ?? '',
+    );
+    _awayController = TextEditingController(
+      text: widget.match.awayScore?.toString() ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _homeController.dispose();
+    _awayController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Update final score'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _homeController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: InputDecoration(labelText: widget.home.code),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  controller: _awayController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: InputDecoration(labelText: widget.away.code),
+                ),
+              ),
+            ],
+          ),
+          if (_errorText != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              _errorText!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ],
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(onPressed: _save, child: const Text('Save result')),
+      ],
+    );
+  }
+
+  void _save() {
+    final homeScore = int.tryParse(_homeController.text.trim());
+    final awayScore = int.tryParse(_awayController.text.trim());
+    if (homeScore == null || awayScore == null) {
+      setState(() {
+        _errorText = 'Enter scores for both teams.';
+      });
+      return;
+    }
+
+    Navigator.of(context).pop(
+      FixtureResult(
+        matchId: widget.match.id,
+        homeScore: homeScore,
+        awayScore: awayScore,
+        sourceLabel: 'Manual local result',
+        updatedAt: DateTime.now(),
       ),
     );
   }

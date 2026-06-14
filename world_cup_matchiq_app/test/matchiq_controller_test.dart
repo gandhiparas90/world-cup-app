@@ -1,9 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:world_cup_matchiq/data/ai_preview_repository.dart';
+import 'package:world_cup_matchiq/data/fixture_result_repository.dart';
 import 'package:world_cup_matchiq/data/match_repository.dart';
 import 'package:world_cup_matchiq/data/saved_prediction_repository.dart';
 import 'package:world_cup_matchiq/data/user_profile_repository.dart';
 import 'package:world_cup_matchiq/models/ai_match_preview.dart';
+import 'package:world_cup_matchiq/models/fixture_result.dart';
 import 'package:world_cup_matchiq/models/saved_prediction.dart';
 import 'package:world_cup_matchiq/models/user_profile.dart';
 import 'package:world_cup_matchiq/services/ai_match_preview_service.dart';
@@ -19,6 +21,7 @@ void main() {
         savedPredictionRepository: InMemorySavedPredictionRepository(),
         userProfileRepository: InMemoryUserProfileRepository(),
         aiPreviewRepository: InMemoryAiPreviewRepository(),
+        fixtureResultRepository: InMemoryFixtureResultRepository(),
         aiMatchPreviewService: const FallbackAiMatchPreviewService(),
       );
 
@@ -56,6 +59,7 @@ void main() {
       savedPredictionRepository: InMemorySavedPredictionRepository(),
       userProfileRepository: InMemoryUserProfileRepository(),
       aiPreviewRepository: InMemoryAiPreviewRepository(),
+      fixtureResultRepository: InMemoryFixtureResultRepository(),
       aiMatchPreviewService: const FallbackAiMatchPreviewService(),
     );
 
@@ -86,6 +90,7 @@ void main() {
       savedPredictionRepository: InMemorySavedPredictionRepository(),
       userProfileRepository: InMemoryUserProfileRepository(),
       aiPreviewRepository: InMemoryAiPreviewRepository(),
+      fixtureResultRepository: InMemoryFixtureResultRepository(),
       aiMatchPreviewService: service,
     );
 
@@ -99,6 +104,49 @@ void main() {
     expect(controller.aiPreviewForMatch('bra-mar')?.headline, 'AI headline');
     expect(controller.aiPreviews, hasLength(1));
     expect(controller.isGeneratingAiPreview('bra-mar'), isFalse);
+  });
+
+  test('controller overlays local fixture results onto seed matches', () async {
+    final controller = MatchIqController(
+      matchRepository: MatchRepository.seeded(),
+      savedPredictionRepository: InMemorySavedPredictionRepository(),
+      userProfileRepository: InMemoryUserProfileRepository(),
+      aiPreviewRepository: InMemoryAiPreviewRepository(),
+      fixtureResultRepository: InMemoryFixtureResultRepository(),
+      aiMatchPreviewService: const FallbackAiMatchPreviewService(),
+    );
+
+    await controller.load();
+    expect(controller.matchById('bra-mar').isCompleted, isFalse);
+    expect(
+      controller.upcomingMatches.map((match) => match.id),
+      contains('bra-mar'),
+    );
+
+    await controller.saveFixtureResult(
+      FixtureResult(
+        matchId: 'bra-mar',
+        homeScore: 1,
+        awayScore: 2,
+        sourceLabel: 'Manual local result',
+        updatedAt: DateTime(2026, 6, 13, 20, 45),
+      ),
+    );
+
+    final updatedMatch = controller.matchById('bra-mar');
+    expect(updatedMatch.isCompleted, isTrue);
+    expect(updatedMatch.homeScore, 1);
+    expect(updatedMatch.awayScore, 2);
+    expect(updatedMatch.sourceLabel, 'Manual local result');
+    expect(updatedMatch.dataUpdatedLabel, 'Updated Jun 13, 2026 8:45 PM');
+    expect(
+      controller.upcomingMatches.map((match) => match.id),
+      isNot(contains('bra-mar')),
+    );
+
+    await controller.clearFixtureResult('bra-mar');
+    expect(controller.matchById('bra-mar').isCompleted, isFalse);
+    expect(controller.fixtureResultForMatch('bra-mar'), isNull);
   });
 }
 

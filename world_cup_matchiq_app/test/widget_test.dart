@@ -152,6 +152,43 @@ void main() {
 
     expect(find.text('No saved predictions yet.'), findsOneWidget);
   });
+
+  testWidgets('marks a scheduled fixture final with a local score override', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const WorldCupMatchIqEntryPoint());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Use these settings'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(_navLabel('Fixtures'));
+    await tester.pumpAndSettle();
+    await _openFixture(tester, 'Brazil vs Morocco');
+
+    expect(find.text('Result update'), findsOneWidget);
+    expect(find.text('Mark final'), findsOneWidget);
+
+    await tester.tap(find.text('Mark final'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Update final score'), findsOneWidget);
+    final scoreFields = find.byType(TextField);
+    expect(scoreFields, findsNWidgets(2));
+    await tester.enterText(scoreFields.at(0), '3');
+    await tester.enterText(scoreFields.at(1), '2');
+    await tester.tap(find.text('Save result'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Final score'), findsOneWidget);
+    expect(find.text('BRA 3 - 2 MAR'), findsOneWidget);
+    expect(find.text('Clear local result'), findsOneWidget);
+
+    await tester.tap(find.text('Clear local result'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Result update'), findsOneWidget);
+    expect(find.text('Mark final'), findsOneWidget);
+  });
 }
 
 Finder _navLabel(String label) {

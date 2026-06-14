@@ -3,6 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../data/ai_preview_repository.dart';
+import '../data/fixture_result_repository.dart';
 import '../data/match_repository.dart';
 import '../data/saved_prediction_repository.dart';
 import '../data/user_profile_repository.dart';
@@ -20,6 +21,7 @@ class WorldCupMatchIqEntryPoint extends StatelessWidget {
     this.savedPredictionRepository,
     this.userProfileRepository,
     this.aiPreviewRepository,
+    this.fixtureResultRepository,
     this.aiMatchPreviewService,
     this.theme,
     super.key,
@@ -29,6 +31,7 @@ class WorldCupMatchIqEntryPoint extends StatelessWidget {
   final SavedPredictionRepository? savedPredictionRepository;
   final UserProfileRepository? userProfileRepository;
   final AiPreviewRepository? aiPreviewRepository;
+  final FixtureResultRepository? fixtureResultRepository;
   final AiMatchPreviewService? aiMatchPreviewService;
   final ThemeData? theme;
 
@@ -43,6 +46,8 @@ class WorldCupMatchIqEntryPoint extends StatelessWidget {
             userProfileRepository ?? InMemoryUserProfileRepository(),
         aiPreviewRepository:
             aiPreviewRepository ?? InMemoryAiPreviewRepository(),
+        fixtureResultRepository:
+            fixtureResultRepository ?? InMemoryFixtureResultRepository(),
         aiMatchPreviewService:
             aiMatchPreviewService ?? const FallbackAiMatchPreviewService(),
       )..load(),

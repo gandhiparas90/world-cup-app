@@ -17,15 +17,15 @@ The design spec lives at:
 
 ## Current Checkpoint
 
-Stage 2.6 is the current runnable Flutter checkpoint:
+Stage 2.8 is the current runnable Flutter checkpoint:
 
 - Personalized Home screen that starts with profile setup instead of a dense fixture list.
 - Full local catalog for all 48 World Cup teams, Groups A-L, and all 72 group-stage fixtures.
-- Fixtures screen with local kickoff conversion, US viewing metadata, team notes, completed-result labels, and prototype predictions.
+- Fixtures screen with local kickoff conversion, US viewing metadata, team notes, completed-result labels, local final-score overrides, and prototype predictions.
 - Teams screen with searchable team catalog sourced from the same local team table as the Profile favorite-team dropdown.
-- Match Detail screen with local win/draw/loss percentages, scoreline estimates, "Why this prediction?" factors, scorer likelihoods, team context, and US viewing info when a profile exists.
+- Match Detail screen with local final-score update controls, win/draw/loss percentages, scoreline estimates, "Why this prediction?" factors, scorer likelihoods, team context, and US viewing info when a profile exists.
 - AI match preview card that can generate a Gemini-backed preview from local match/team/player/prediction data, with deterministic offline fallback when no API key is supplied.
-- Profile screen with local Hive-backed display name, country, time zone, favorite team, and saved predictions.
+- Profile screen with local Hive-backed display name, country, time zone, favorite team, saved predictions, AI previews, and fixture result overrides.
 - Player/scorer records remain partial by design until a roster/stat source is connected.
 
 Run the app:
@@ -74,13 +74,13 @@ server-side, and enables CORS for the local Flutter web app. The helper passes
 `AI_MODEL` and `GEMINI_PROXY_URL` as dart defines. This keeps the key out of
 Git and out of the browser bundle.
 
-Verified Stage 2.6 commands:
+Verified Stage 2.8 commands:
 
 ```bash
 /Users/parasgandhi/Project/temp/flutter/bin/flutter analyze
 /Users/parasgandhi/Project/temp/flutter/bin/flutter test
-/Users/parasgandhi/Project/temp/flutter/bin/flutter test tool/progress_screenshots.dart --update-goldens --dart-define=SCREENSHOT_STAGE=stage2_6
+/Users/parasgandhi/Project/temp/flutter/bin/flutter test tool/progress_screenshots.dart --update-goldens --dart-define=SCREENSHOT_STAGE=stage2_8
 GEMINI_PROXY_URL=http://127.0.0.1:8787/generateContent bash tool/flutter_with_env.sh build web --no-wasm-dry-run
 ```
 
-Stage 2.6 screenshots are stored in `docs/screenshots/stage2_6/`.
+Stage 2.8 screenshots are stored in `docs/screenshots/stage2_8/`.

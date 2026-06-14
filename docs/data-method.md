@@ -24,6 +24,12 @@ ingested JSON feed without rewriting screens.
 - `teamStats`: local attack, defense, form, and goals inputs used by prototype predictions
 - `players`: partial scorer inputs for selected matches
 - `newsItems`: partial local notes used to explain the current data scope
+- `fixtureResults`: local Hive overrides for final scores entered on the device
+
+`fixtureResults` is the first step toward live score updates. The seeded
+schedule remains the baseline, and the controller overlays any local result
+override onto the matching fixture. A later sports-data API or backend search
+job can write the same result shape without changing the match detail UI.
 
 ## Prototype Prediction Inputs
 

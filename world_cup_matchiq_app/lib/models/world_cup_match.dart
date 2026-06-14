@@ -34,4 +34,29 @@ class WorldCupMatch {
   final String dataUpdatedLabel;
 
   bool get isScheduled => !isCompleted;
+
+  WorldCupMatch withFinalScore({
+    required int homeScore,
+    required int awayScore,
+    required String sourceLabel,
+    required String dataUpdatedLabel,
+  }) {
+    return WorldCupMatch(
+      id: id,
+      homeTeamId: homeTeamId,
+      awayTeamId: awayTeamId,
+      stage: stage,
+      dateLabel: dateLabel,
+      kickoffLabel: kickoffLabel,
+      venue: venue,
+      broadcastChannel: broadcastChannel,
+      homeScore: homeScore,
+      awayScore: awayScore,
+      isCompleted: true,
+      storyline: '$stage result from the local fixture result store.',
+      sourceLabel: sourceLabel,
+      sourceUrl: sourceUrl,
+      dataUpdatedLabel: dataUpdatedLabel,
+    );
+  }
 }

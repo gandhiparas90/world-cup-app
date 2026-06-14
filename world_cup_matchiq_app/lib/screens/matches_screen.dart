@@ -56,19 +56,29 @@ class MatchesScreen extends StatelessWidget {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => Consumer<MatchIqController>(
-                    builder: (context, controller, _) => MatchDetailScreen(
-                      match: match,
-                      home: controller.teamById(match.homeTeamId),
-                      away: controller.teamById(match.awayTeamId),
-                      players: controller.playersForMatch(match.id),
-                      profile: controller.profile,
-                      onSavePrediction: controller.savePrediction,
-                      aiPreview: controller.aiPreviewForMatch(match.id),
-                      isGeneratingAiPreview: controller.isGeneratingAiPreview(
-                        match.id,
-                      ),
-                      onGenerateAiPreview: controller.generateAiPreview,
-                    ),
+                    builder: (context, controller, _) {
+                      final currentMatch = controller.matchById(match.id);
+                      return MatchDetailScreen(
+                        match: currentMatch,
+                        home: controller.teamById(currentMatch.homeTeamId),
+                        away: controller.teamById(currentMatch.awayTeamId),
+                        players: controller.playersForMatch(currentMatch.id),
+                        profile: controller.profile,
+                        onSavePrediction: controller.savePrediction,
+                        fixtureResult: controller.fixtureResultForMatch(
+                          currentMatch.id,
+                        ),
+                        onSaveFixtureResult: controller.saveFixtureResult,
+                        onClearFixtureResult: controller.clearFixtureResult,
+                        aiPreview: controller.aiPreviewForMatch(
+                          currentMatch.id,
+                        ),
+                        isGeneratingAiPreview: controller.isGeneratingAiPreview(
+                          currentMatch.id,
+                        ),
+                        onGenerateAiPreview: controller.generateAiPreview,
+                      );
+                    },
                   ),
                 ),
               );

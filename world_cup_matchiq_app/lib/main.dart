@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'app/world_cup_matchiq_app.dart';
 import 'data/ai_preview_repository.dart';
+import 'data/fixture_result_repository.dart';
 import 'data/saved_prediction_repository.dart';
 import 'data/user_profile_repository.dart';
 import 'services/ai_match_preview_service.dart';
@@ -25,6 +26,9 @@ Future<void> main() async {
   final aiPreviewBox = await Hive.openBox<dynamic>(
     HiveAiPreviewRepository.boxName,
   );
+  final fixtureResultsBox = await Hive.openBox<dynamic>(
+    HiveFixtureResultRepository.boxName,
+  );
 
   runApp(
     WorldCupMatchIqEntryPoint(
@@ -33,6 +37,9 @@ Future<void> main() async {
       ),
       userProfileRepository: HiveUserProfileRepository(box: userProfileBox),
       aiPreviewRepository: HiveAiPreviewRepository(box: aiPreviewBox),
+      fixtureResultRepository: HiveFixtureResultRepository(
+        box: fixtureResultsBox,
+      ),
       aiMatchPreviewService: GeminiAiMatchPreviewService(
         apiKey: geminiApiKey,
         model: aiModel,
