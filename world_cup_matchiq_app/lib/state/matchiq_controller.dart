@@ -191,11 +191,15 @@ class MatchIqController extends ChangeNotifier {
     if (result == null) {
       return match;
     }
+    if (match.isCompleted && result.updatedAt.isBefore(match.dataUpdatedAt)) {
+      return match;
+    }
     return match.withFinalScore(
       homeScore: result.homeScore,
       awayScore: result.awayScore,
       sourceLabel: result.sourceLabel,
       dataUpdatedLabel: result.updatedLabel,
+      dataUpdatedAt: result.updatedAt,
     );
   }
 }

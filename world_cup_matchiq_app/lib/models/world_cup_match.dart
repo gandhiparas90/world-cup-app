@@ -15,6 +15,7 @@ class WorldCupMatch {
     required this.sourceLabel,
     required this.sourceUrl,
     required this.dataUpdatedLabel,
+    required this.dataUpdatedAt,
   });
 
   final String id;
@@ -32,6 +33,7 @@ class WorldCupMatch {
   final String sourceLabel;
   final String sourceUrl;
   final String dataUpdatedLabel;
+  final DateTime dataUpdatedAt;
 
   bool get isScheduled => !isCompleted;
 
@@ -40,6 +42,7 @@ class WorldCupMatch {
     required int awayScore,
     required String sourceLabel,
     required String dataUpdatedLabel,
+    required DateTime dataUpdatedAt,
   }) {
     return WorldCupMatch(
       id: id,
@@ -57,6 +60,7 @@ class WorldCupMatch {
       sourceLabel: sourceLabel,
       sourceUrl: sourceUrl,
       dataUpdatedLabel: dataUpdatedLabel,
+      dataUpdatedAt: dataUpdatedAt,
     );
   }
 }

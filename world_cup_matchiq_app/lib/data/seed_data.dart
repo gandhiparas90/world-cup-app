@@ -14,6 +14,7 @@ class SeedData {
       'https://www.sbnation.com/soccer/1117513/world-cup-schedule-2026-how-to-watch-every-match-scores-and-more';
   static const standingsSourceLabel = 'World Cup public standings snapshot';
   static const dataUpdatedLabel = 'Updated Jun 14, 2026';
+  static final dataUpdatedAt = DateTime(2026, 6, 14, 8, 30);
 
   static final groups = List<GroupInfo>.unmodifiable([
     _group('A', ['mex', 'rsa', 'kor', 'cze']),
@@ -1419,6 +1420,7 @@ class SeedData {
       sourceLabel: scheduleSourceLabel,
       sourceUrl: scheduleSourceUrl,
       dataUpdatedLabel: dataUpdatedLabel,
+      dataUpdatedAt: dataUpdatedAt,
     );
   }
 

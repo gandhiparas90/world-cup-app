@@ -148,6 +148,38 @@ void main() {
     expect(controller.matchById('ger-cur').isCompleted, isFalse);
     expect(controller.fixtureResultForMatch('ger-cur'), isNull);
   });
+
+  test(
+    'controller ignores stale local result overrides for refreshed completed seed matches',
+    () async {
+      final controller = MatchIqController(
+        matchRepository: MatchRepository.seeded(),
+        savedPredictionRepository: InMemorySavedPredictionRepository(),
+        userProfileRepository: InMemoryUserProfileRepository(),
+        aiPreviewRepository: InMemoryAiPreviewRepository(),
+        fixtureResultRepository: InMemoryFixtureResultRepository(),
+        aiMatchPreviewService: const FallbackAiMatchPreviewService(),
+      );
+
+      await controller.load();
+      await controller.saveFixtureResult(
+        FixtureResult(
+          matchId: 'bra-mar',
+          homeScore: 3,
+          awayScore: 2,
+          sourceLabel: 'Stale manual local result',
+          updatedAt: DateTime(2026, 6, 13, 20, 45),
+        ),
+      );
+
+      final refreshedMatch = controller.matchById('bra-mar');
+      expect(refreshedMatch.isCompleted, isTrue);
+      expect(refreshedMatch.homeScore, 1);
+      expect(refreshedMatch.awayScore, 1);
+      expect(refreshedMatch.sourceLabel, 'World Cup schedule/results snapshot');
+      expect(refreshedMatch.dataUpdatedLabel, 'Updated Jun 14, 2026');
+    },
+  );
 }
 
 AiPreviewRequest _request(MatchIqController controller) {
