@@ -17,7 +17,8 @@ The design spec lives at:
 
 ## Current Checkpoint
 
-Stage 2.8 is the current runnable Flutter checkpoint:
+Stage 2.8 is the current runnable Flutter checkpoint. The bundled fixture
+snapshot is refreshed through the completed early Jun 14 match window.
 
 - Personalized Home screen that starts with profile setup instead of a dense fixture list.
 - Full local catalog for all 48 World Cup teams, Groups A-L, and all 72 group-stage fixtures.
@@ -74,13 +75,13 @@ server-side, and enables CORS for the local Flutter web app. The helper passes
 `AI_MODEL` and `GEMINI_PROXY_URL` as dart defines. This keeps the key out of
 Git and out of the browser bundle.
 
-Verified Stage 2.8 commands:
+Verified result-refresh commands:
 
 ```bash
 /Users/parasgandhi/Project/temp/flutter/bin/flutter analyze
 /Users/parasgandhi/Project/temp/flutter/bin/flutter test
-/Users/parasgandhi/Project/temp/flutter/bin/flutter test tool/progress_screenshots.dart --update-goldens --dart-define=SCREENSHOT_STAGE=stage2_8
-GEMINI_PROXY_URL=http://127.0.0.1:8787/generateContent bash tool/flutter_with_env.sh build web --no-wasm-dry-run
+/Users/parasgandhi/Project/temp/flutter/bin/flutter test tool/progress_screenshots.dart --update-goldens --dart-define=SCREENSHOT_STAGE=stage2_9
+/Users/parasgandhi/Project/temp/flutter/bin/flutter build web --no-wasm-dry-run
 ```
 
-Stage 2.8 screenshots are stored in `docs/screenshots/stage2_8/`.
+Stage 2.9 screenshots are stored in `docs/screenshots/stage2_9/`.

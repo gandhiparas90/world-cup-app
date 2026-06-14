@@ -117,15 +117,15 @@ void main() {
     );
 
     await controller.load();
-    expect(controller.matchById('bra-mar').isCompleted, isFalse);
+    expect(controller.matchById('ger-cur').isCompleted, isFalse);
     expect(
       controller.upcomingMatches.map((match) => match.id),
-      contains('bra-mar'),
+      contains('ger-cur'),
     );
 
     await controller.saveFixtureResult(
       FixtureResult(
-        matchId: 'bra-mar',
+        matchId: 'ger-cur',
         homeScore: 1,
         awayScore: 2,
         sourceLabel: 'Manual local result',
@@ -133,7 +133,7 @@ void main() {
       ),
     );
 
-    final updatedMatch = controller.matchById('bra-mar');
+    final updatedMatch = controller.matchById('ger-cur');
     expect(updatedMatch.isCompleted, isTrue);
     expect(updatedMatch.homeScore, 1);
     expect(updatedMatch.awayScore, 2);
@@ -141,12 +141,12 @@ void main() {
     expect(updatedMatch.dataUpdatedLabel, 'Updated Jun 13, 2026 8:45 PM');
     expect(
       controller.upcomingMatches.map((match) => match.id),
-      isNot(contains('bra-mar')),
+      isNot(contains('ger-cur')),
     );
 
-    await controller.clearFixtureResult('bra-mar');
-    expect(controller.matchById('bra-mar').isCompleted, isFalse);
-    expect(controller.fixtureResultForMatch('bra-mar'), isNull);
+    await controller.clearFixtureResult('ger-cur');
+    expect(controller.matchById('ger-cur').isCompleted, isFalse);
+    expect(controller.fixtureResultForMatch('ger-cur'), isNull);
   });
 }
 

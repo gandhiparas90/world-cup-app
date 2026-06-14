@@ -35,8 +35,15 @@ void main() {
       expect(match.venue, isNotEmpty);
       expect(match.broadcastChannel, anyOf('FOX', 'FS1'));
       expect(match.sourceUrl, startsWith('https://'));
-      expect(match.dataUpdatedLabel, contains('Jun 13, 2026'));
+      expect(match.dataUpdatedLabel, contains('Jun 14, 2026'));
     }
+  });
+
+  test('seed data includes current Jun 13 and early Jun 14 results', () {
+    expect(_scoreline('qat-sui'), '1-1');
+    expect(_scoreline('bra-mar'), '1-1');
+    expect(_scoreline('hai-sco'), '0-1');
+    expect(_scoreline('aus-tur'), '2-0');
   });
 
   test(
@@ -71,4 +78,10 @@ void main() {
       expect(SeedData.playersForMatch('ger-cur'), isEmpty);
     },
   );
+}
+
+String _scoreline(String matchId) {
+  final match = SeedData.matchById(matchId);
+  expect(match.isCompleted, isTrue, reason: matchId);
+  return '${match.homeScore}-${match.awayScore}';
 }

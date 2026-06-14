@@ -9,11 +9,11 @@ import '../models/world_cup_match.dart';
 class SeedData {
   const SeedData._();
 
-  static const scheduleSourceLabel = 'SB Nation World Cup schedule';
+  static const scheduleSourceLabel = 'World Cup schedule/results snapshot';
   static const scheduleSourceUrl =
       'https://www.sbnation.com/soccer/1117513/world-cup-schedule-2026-how-to-watch-every-match-scores-and-more';
   static const standingsSourceLabel = 'World Cup public standings snapshot';
-  static const dataUpdatedLabel = 'Updated Jun 13, 2026';
+  static const dataUpdatedLabel = 'Updated Jun 14, 2026';
 
   static final groups = List<GroupInfo>.unmodifiable([
     _group('A', ['mex', 'rsa', 'kor', 'cze']),
@@ -386,6 +386,8 @@ class SeedData {
       '3:00 PM ET',
       'San Francisco Bay Area Stadium',
       'FOX',
+      homeScore: 1,
+      awayScore: 1,
     ),
     _match(
       'bra-mar',
@@ -396,6 +398,8 @@ class SeedData {
       '6:00 PM ET',
       'New York New Jersey Stadium',
       'FOX',
+      homeScore: 1,
+      awayScore: 1,
     ),
     _match(
       'hai-sco',
@@ -406,6 +410,8 @@ class SeedData {
       '9:00 PM ET',
       'Boston Stadium',
       'FOX',
+      homeScore: 0,
+      awayScore: 1,
     ),
     _match(
       'aus-tur',
@@ -416,6 +422,8 @@ class SeedData {
       '12:00 AM ET',
       'BC Place Vancouver',
       'FS1',
+      homeScore: 2,
+      awayScore: 0,
     ),
     _match(
       'ger-cur',

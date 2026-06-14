@@ -163,7 +163,7 @@ void main() {
 
     await tester.tap(_navLabel('Fixtures'));
     await tester.pumpAndSettle();
-    await _openFixture(tester, 'Brazil vs Morocco');
+    await _openFixture(tester, 'Germany vs Curacao');
 
     expect(find.text('Result update'), findsOneWidget);
     expect(find.text('Mark final'), findsOneWidget);
@@ -180,7 +180,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Final score'), findsOneWidget);
-    expect(find.text('BRA 3 - 2 MAR'), findsOneWidget);
+    expect(find.text('GER 3 - 2 CUR'), findsOneWidget);
     expect(find.text('Clear local result'), findsOneWidget);
 
     await tester.tap(find.text('Clear local result'));
