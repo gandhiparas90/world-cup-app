@@ -23,6 +23,7 @@ class WorldCupMatchIqEntryPoint extends StatelessWidget {
     this.aiPreviewRepository,
     this.fixtureResultRepository,
     this.aiMatchPreviewService,
+    this.nowUtc,
     this.theme,
     super.key,
   });
@@ -33,6 +34,7 @@ class WorldCupMatchIqEntryPoint extends StatelessWidget {
   final AiPreviewRepository? aiPreviewRepository;
   final FixtureResultRepository? fixtureResultRepository;
   final AiMatchPreviewService? aiMatchPreviewService;
+  final DateTime? nowUtc;
   final ThemeData? theme;
 
   @override
@@ -55,14 +57,16 @@ class WorldCupMatchIqEntryPoint extends StatelessWidget {
         title: 'World Cup MatchIQ',
         debugShowCheckedModeBanner: false,
         theme: theme ?? MatchIqTheme.light(),
-        home: const WorldCupMatchIqApp(),
+        home: WorldCupMatchIqApp(nowUtc: nowUtc),
       ),
     );
   }
 }
 
 class WorldCupMatchIqApp extends StatelessWidget {
-  const WorldCupMatchIqApp({super.key});
+  const WorldCupMatchIqApp({this.nowUtc, super.key});
+
+  final DateTime? nowUtc;
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +78,7 @@ class WorldCupMatchIqApp extends StatelessWidget {
         teamById: controller.teamById,
         profile: controller.profile,
         savedPredictions: controller.savedPredictions,
+        nowUtc: nowUtc,
         onSaveProfile: controller.saveProfile,
         onOpenFixtures: () => controller.selectTab(1),
         onOpenProfile: () => controller.selectTab(3),

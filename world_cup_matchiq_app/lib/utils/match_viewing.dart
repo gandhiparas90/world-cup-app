@@ -1,4 +1,5 @@
 import '../models/world_cup_match.dart';
+import 'match_timing.dart';
 
 class ProfileChoice {
   const ProfileChoice({required this.value, required this.label});
@@ -37,14 +38,14 @@ String timezoneLabel(String timezone) {
 }
 
 String localKickoffLabel(WorldCupMatch match, String timezone) {
-  final easternDateTime = _parseEasternKickoff(match);
+  final kickoffUtc = matchKickoffUtc(match);
   final targetOffset = _timezoneOffsets[timezone];
   final suffix = _timezoneSuffixes[timezone];
-  if (easternDateTime == null || targetOffset == null || suffix == null) {
+  if (kickoffUtc == null || targetOffset == null || suffix == null) {
     return '${match.dateLabel} ${match.kickoffLabel}';
   }
 
-  final local = easternDateTime.toUtc().add(Duration(hours: targetOffset));
+  final local = kickoffUtc.add(Duration(hours: targetOffset));
   return '${_weekday(local)} ${_month(local.month)} ${local.day} ${_timeLabel(local)} $suffix';
 }
 
@@ -57,38 +58,6 @@ String broadcastSummary(WorldCupMatch match, String countryCode) {
 
 String viewingLine(WorldCupMatch match, String countryCode, String timezone) {
   return '${localKickoffLabel(match, timezone)} - ${broadcastSummary(match, countryCode)}';
-}
-
-DateTime? _parseEasternKickoff(WorldCupMatch match) {
-  final dateParts = match.dateLabel.split(' ');
-  final timeParts = match.kickoffLabel.split(' ');
-  if (dateParts.length != 3 || timeParts.length < 2) {
-    return null;
-  }
-
-  final month = _monthNumbers[dateParts[1]];
-  final day = int.tryParse(dateParts[2]);
-  final hourMinute = timeParts[0].split(':');
-  if (month == null || day == null || hourMinute.length != 2) {
-    return null;
-  }
-
-  var hour = int.tryParse(hourMinute[0]);
-  final minute = int.tryParse(hourMinute[1]);
-  final period = timeParts[1];
-  if (hour == null || minute == null) {
-    return null;
-  }
-
-  if (period == 'PM' && hour != 12) {
-    hour += 12;
-  }
-  if (period == 'AM' && hour == 12) {
-    hour = 0;
-  }
-
-  // Tournament dates are in daylight saving time. Eastern Time is UTC-4.
-  return DateTime.utc(2026, month, day, hour + 4, minute);
 }
 
 String _timeLabel(DateTime dateTime) {
@@ -127,21 +96,6 @@ String _month(int month) {
     'Dec',
   ][month - 1];
 }
-
-const _monthNumbers = <String, int>{
-  'Jan': 1,
-  'Feb': 2,
-  'Mar': 3,
-  'Apr': 4,
-  'May': 5,
-  'Jun': 6,
-  'Jul': 7,
-  'Aug': 8,
-  'Sep': 9,
-  'Oct': 10,
-  'Nov': 11,
-  'Dec': 12,
-};
 
 const _timezoneOffsets = <String, int>{
   'America/New_York': -4,

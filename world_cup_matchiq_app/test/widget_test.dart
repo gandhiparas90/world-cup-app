@@ -6,7 +6,9 @@ void main() {
   testWidgets('renders setup home and creates a personalized home', (
     tester,
   ) async {
-    await tester.pumpWidget(const WorldCupMatchIqEntryPoint());
+    await tester.pumpWidget(
+      WorldCupMatchIqEntryPoint(nowUtc: _homeSnapshotNowUtc),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('World Cup MatchIQ'), findsOneWidget);
@@ -15,21 +17,31 @@ void main() {
     expect(find.text('Teams'), findsOneWidget);
     expect(find.text('Profile'), findsOneWidget);
     expect(find.text('Set up your World Cup'), findsOneWidget);
-    expect(find.text('Fixture snapshot'), findsOneWidget);
+    expect(find.text('Recent results'), findsOneWidget);
 
     await tester.tap(find.text('Use these settings'));
     await tester.pumpAndSettle();
 
     expect(find.text('Your World Cup'), findsOneWidget);
     expect(find.text('Portugal'), findsOneWidget);
-    expect(find.text('Portugal vs DR Congo'), findsOneWidget);
+    expect(find.textContaining('Portugal vs DR Congo'), findsOneWidget);
     await tester.scrollUntilVisible(
-      find.text('Next near you'),
+      find.text('Next up'),
       200,
       scrollable: find.byType(Scrollable).last,
     );
-    expect(find.text('Next near you'), findsOneWidget);
-    expect(find.textContaining('FOX'), findsWidgets);
+    expect(find.text('Next up'), findsOneWidget);
+    expect(find.text('Germany vs Curacao'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Recent results'),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.text('Recent results'), findsOneWidget);
+    await tester.drag(find.byType(Scrollable).last, const Offset(0, -240));
+    await tester.pumpAndSettle();
+    expect(find.text('Australia vs Turkiye'), findsOneWidget);
+    expect(find.text('Final: AUS 2 - 0 TUR'), findsOneWidget);
   });
 
   testWidgets('searches teams from the full team catalog', (tester) async {
@@ -190,6 +202,8 @@ void main() {
     expect(find.text('Mark final'), findsOneWidget);
   });
 }
+
+final _homeSnapshotNowUtc = DateTime.utc(2026, 6, 14, 13, 45);
 
 Finder _navLabel(String label) {
   return find.descendant(

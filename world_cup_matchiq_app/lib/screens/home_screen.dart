@@ -6,6 +6,7 @@ import '../models/saved_prediction.dart';
 import '../models/team.dart';
 import '../models/user_profile.dart';
 import '../models/world_cup_match.dart';
+import '../utils/match_timing.dart';
 import '../utils/match_viewing.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -15,6 +16,7 @@ class HomeScreen extends StatelessWidget {
     required this.teamById,
     required this.profile,
     required this.savedPredictions,
+    this.nowUtc,
     required this.onSaveProfile,
     required this.onOpenFixtures,
     required this.onOpenProfile,
@@ -26,6 +28,7 @@ class HomeScreen extends StatelessWidget {
   final Team Function(String id) teamById;
   final UserProfile? profile;
   final List<SavedPrediction> savedPredictions;
+  final DateTime? nowUtc;
   final Future<void> Function(UserProfile profile) onSaveProfile;
   final VoidCallback onOpenFixtures;
   final VoidCallback onOpenProfile;
@@ -33,6 +36,9 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final activeProfile = profile;
+    final effectiveNowUtc = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    final countryCode = activeProfile?.countryCode ?? 'US';
+    final timezone = activeProfile?.timezone ?? 'America/Chicago';
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -52,13 +58,25 @@ class HomeScreen extends StatelessWidget {
             teams: teams,
             matches: matches,
             teamById: teamById,
+            nowUtc: effectiveNowUtc,
             onOpenFixtures: onOpenFixtures,
           ),
           const SizedBox(height: 16),
-          _TodayNearYouSection(
-            profile: activeProfile,
+          _NextUpSection(
+            countryCode: countryCode,
+            timezone: timezone,
             matches: matches,
             teamById: teamById,
+            nowUtc: effectiveNowUtc,
+            onOpenFixtures: onOpenFixtures,
+          ),
+          const SizedBox(height: 16),
+          _RecentResultsSection(
+            countryCode: countryCode,
+            timezone: timezone,
+            matches: matches,
+            teamById: teamById,
+            nowUtc: effectiveNowUtc,
             onOpenFixtures: onOpenFixtures,
           ),
           const SizedBox(height: 16),
@@ -66,8 +84,31 @@ class HomeScreen extends StatelessWidget {
             savedPredictions: savedPredictions,
             onOpenProfile: onOpenProfile,
           ),
-        ] else
-          _SnapshotCard(matches: matches, onOpenFixtures: onOpenFixtures),
+        ] else ...[
+          _RecentResultsSection(
+            countryCode: countryCode,
+            timezone: timezone,
+            matches: matches,
+            teamById: teamById,
+            nowUtc: effectiveNowUtc,
+            onOpenFixtures: onOpenFixtures,
+          ),
+          const SizedBox(height: 16),
+          _NextUpSection(
+            countryCode: countryCode,
+            timezone: timezone,
+            matches: matches,
+            teamById: teamById,
+            nowUtc: effectiveNowUtc,
+            onOpenFixtures: onOpenFixtures,
+          ),
+          const SizedBox(height: 16),
+          _SnapshotCard(
+            matches: matches,
+            nowUtc: effectiveNowUtc,
+            onOpenFixtures: onOpenFixtures,
+          ),
+        ],
       ],
     );
   }
@@ -210,6 +251,7 @@ class _FavoriteTeamCard extends StatelessWidget {
     required this.teams,
     required this.matches,
     required this.teamById,
+    required this.nowUtc,
     required this.onOpenFixtures,
   });
 
@@ -217,6 +259,7 @@ class _FavoriteTeamCard extends StatelessWidget {
   final List<Team> teams;
   final List<WorldCupMatch> matches;
   final Team Function(String id) teamById;
+  final DateTime nowUtc;
   final VoidCallback onOpenFixtures;
 
   @override
@@ -225,12 +268,20 @@ class _FavoriteTeamCard extends StatelessWidget {
     final favoriteMatches = matches
         .where(
           (match) =>
-              match.isScheduled &&
-              (match.homeTeamId == favorite.id ||
-                  match.awayTeamId == favorite.id),
+              match.homeTeamId == favorite.id ||
+              match.awayTeamId == favorite.id,
         )
-        .take(3)
         .toList();
+    final nextFavorite = nextUpcomingMatches(
+      favoriteMatches,
+      nowUtc: nowUtc,
+      limit: 1,
+    );
+    final latestFavorite = recentResultMatches(
+      favoriteMatches,
+      nowUtc: nowUtc,
+      limit: 1,
+    );
 
     return Card(
       child: Padding(
@@ -262,20 +313,28 @@ class _FavoriteTeamCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 14),
-            if (favoriteMatches.isEmpty)
-              Text('No scheduled ${favorite.name} match in the local catalog.')
-            else
-              for (final match in favoriteMatches) ...[
-                Text(
-                  _matchLabel(match, teamById),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w900),
+            if (favoriteMatches.isEmpty) ...[
+              Text('No ${favorite.name} match in the local catalog.'),
+            ] else ...[
+              if (nextFavorite.isNotEmpty)
+                _FavoriteMatchLine(
+                  label: 'Next',
+                  match: nextFavorite.first,
+                  teamById: teamById,
+                  countryCode: profile.countryCode,
+                  timezone: profile.timezone,
+                  nowUtc: nowUtc,
                 ),
-                const SizedBox(height: 3),
-                Text(viewingLine(match, profile.countryCode, profile.timezone)),
-                const SizedBox(height: 8),
-              ],
+              if (latestFavorite.isNotEmpty)
+                _FavoriteMatchLine(
+                  label: 'Latest',
+                  match: latestFavorite.first,
+                  teamById: teamById,
+                  countryCode: profile.countryCode,
+                  timezone: profile.timezone,
+                  nowUtc: nowUtc,
+                ),
+            ],
             const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerLeft,
@@ -292,25 +351,127 @@ class _FavoriteTeamCard extends StatelessWidget {
   }
 }
 
-class _TodayNearYouSection extends StatelessWidget {
-  const _TodayNearYouSection({
-    required this.profile,
+class _FavoriteMatchLine extends StatelessWidget {
+  const _FavoriteMatchLine({
+    required this.label,
+    required this.match,
+    required this.teamById,
+    required this.countryCode,
+    required this.timezone,
+    required this.nowUtc,
+  });
+
+  final String label;
+  final WorldCupMatch match;
+  final Team Function(String id) teamById;
+  final String countryCode;
+  final String timezone;
+  final DateTime nowUtc;
+
+  @override
+  Widget build(BuildContext context) {
+    final home = teamById(match.homeTeamId);
+    final away = teamById(match.awayTeamId);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$label: ${_matchLabel(match, teamById)}',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            _matchStatusLine(match, home, away, countryCode, timezone, nowUtc),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NextUpSection extends StatelessWidget {
+  const _NextUpSection({
+    required this.countryCode,
+    required this.timezone,
     required this.matches,
     required this.teamById,
+    required this.nowUtc,
     required this.onOpenFixtures,
   });
 
-  final UserProfile profile;
+  final String countryCode;
+  final String timezone;
   final List<WorldCupMatch> matches;
   final Team Function(String id) teamById;
+  final DateTime nowUtc;
   final VoidCallback onOpenFixtures;
 
   @override
   Widget build(BuildContext context) {
-    final visibleMatches = matches
-        .where((match) => match.isScheduled)
-        .take(2)
-        .toList();
+    final visibleMatches = nextUpcomingMatches(
+      matches,
+      nowUtc: nowUtc,
+      limit: 2,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _SectionTitle(icon: LucideIcons.tv, title: 'Next up'),
+            ),
+            TextButton(onPressed: onOpenFixtures, child: const Text('All')),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (visibleMatches.isEmpty)
+          const Text('No upcoming fixtures in the local catalog.')
+        else
+          for (final match in visibleMatches)
+            _CompactMatchCard(
+              match: match,
+              home: teamById(match.homeTeamId),
+              away: teamById(match.awayTeamId),
+              countryCode: countryCode,
+              timezone: timezone,
+              nowUtc: nowUtc,
+            ),
+      ],
+    );
+  }
+}
+
+class _RecentResultsSection extends StatelessWidget {
+  const _RecentResultsSection({
+    required this.countryCode,
+    required this.timezone,
+    required this.matches,
+    required this.teamById,
+    required this.nowUtc,
+    required this.onOpenFixtures,
+  });
+
+  final String countryCode;
+  final String timezone;
+  final List<WorldCupMatch> matches;
+  final Team Function(String id) teamById;
+  final DateTime nowUtc;
+  final VoidCallback onOpenFixtures;
+
+  @override
+  Widget build(BuildContext context) {
+    final visibleMatches = recentResultMatches(
+      matches,
+      nowUtc: nowUtc,
+      limit: 3,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,21 +480,26 @@ class _TodayNearYouSection extends StatelessWidget {
           children: [
             Expanded(
               child: _SectionTitle(
-                icon: LucideIcons.tv,
-                title: 'Next near you',
+                icon: LucideIcons.trophy,
+                title: 'Recent results',
               ),
             ),
             TextButton(onPressed: onOpenFixtures, child: const Text('All')),
           ],
         ),
         const SizedBox(height: 8),
-        for (final match in visibleMatches)
-          _CompactMatchCard(
-            match: match,
-            home: teamById(match.homeTeamId),
-            away: teamById(match.awayTeamId),
-            profile: profile,
-          ),
+        if (visibleMatches.isEmpty)
+          const Text('No completed fixtures in the local catalog yet.')
+        else
+          for (final match in visibleMatches)
+            _CompactMatchCard(
+              match: match,
+              home: teamById(match.homeTeamId),
+              away: teamById(match.awayTeamId),
+              countryCode: countryCode,
+              timezone: timezone,
+              nowUtc: nowUtc,
+            ),
       ],
     );
   }
@@ -344,16 +510,22 @@ class _CompactMatchCard extends StatelessWidget {
     required this.match,
     required this.home,
     required this.away,
-    required this.profile,
+    required this.countryCode,
+    required this.timezone,
+    required this.nowUtc,
   });
 
   final WorldCupMatch match;
   final Team home;
   final Team away;
-  final UserProfile profile;
+  final String countryCode;
+  final String timezone;
+  final DateTime nowUtc;
 
   @override
   Widget build(BuildContext context) {
+    final statusLabel = timingLabel(match, nowUtc: nowUtc);
+
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: Padding(
@@ -371,6 +543,8 @@ class _CompactMatchCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                _StatusPill(label: statusLabel, match: match, nowUtc: nowUtc),
+                const SizedBox(width: 8),
                 Text(
                   match.stage,
                   style: Theme.of(context).textTheme.labelMedium,
@@ -378,7 +552,16 @@ class _CompactMatchCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text(viewingLine(match, profile.countryCode, profile.timezone)),
+            Text(
+              _matchStatusLine(
+                match,
+                home,
+                away,
+                countryCode,
+                timezone,
+                nowUtc,
+              ),
+            ),
             const SizedBox(height: 4),
             Text(match.venue, style: Theme.of(context).textTheme.bodySmall),
           ],
@@ -434,13 +617,34 @@ class _SavedSummaryCard extends StatelessWidget {
 }
 
 class _SnapshotCard extends StatelessWidget {
-  const _SnapshotCard({required this.matches, required this.onOpenFixtures});
+  const _SnapshotCard({
+    required this.matches,
+    required this.nowUtc,
+    required this.onOpenFixtures,
+  });
 
   final List<WorldCupMatch> matches;
+  final DateTime nowUtc;
   final VoidCallback onOpenFixtures;
 
   @override
   Widget build(BuildContext context) {
+    final finalCount = matches
+        .where(
+          (match) =>
+              matchTiming(match, nowUtc: nowUtc).state ==
+              MatchTimingState.completed,
+        )
+        .length;
+    final upcomingCount = matches
+        .where(
+          (match) =>
+              matchTiming(match, nowUtc: nowUtc).state ==
+              MatchTimingState.upcoming,
+        )
+        .length;
+    final pendingCount = matches.length - finalCount - upcomingCount;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -459,7 +663,9 @@ class _SnapshotCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text('${matches.length} matches loaded'),
+                  Text(
+                    '$finalCount finals, $upcomingCount upcoming, $pendingCount pending/live',
+                  ),
                 ],
               ),
             ),
@@ -594,6 +800,51 @@ class _TeamBadge extends StatelessWidget {
   }
 }
 
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({
+    required this.label,
+    required this.match,
+    required this.nowUtc,
+  });
+
+  final String label;
+  final WorldCupMatch match;
+  final DateTime nowUtc;
+
+  @override
+  Widget build(BuildContext context) {
+    final state = matchTiming(match, nowUtc: nowUtc).state;
+    final colors = Theme.of(context).colorScheme;
+    final background = switch (state) {
+      MatchTimingState.completed => colors.primaryContainer,
+      MatchTimingState.live => colors.tertiaryContainer,
+      MatchTimingState.awaitingResult => colors.errorContainer,
+      MatchTimingState.upcoming => colors.secondaryContainer,
+    };
+    final foreground = switch (state) {
+      MatchTimingState.completed => colors.onPrimaryContainer,
+      MatchTimingState.live => colors.onTertiaryContainer,
+      MatchTimingState.awaitingResult => colors.onErrorContainer,
+      MatchTimingState.upcoming => colors.onSecondaryContainer,
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: foreground,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+}
+
 Team _preferredTeam(List<Team> teams) {
   return _teamByIdOrFallback(teams, 'por');
 }
@@ -606,4 +857,29 @@ String _matchLabel(WorldCupMatch match, Team Function(String id) teamById) {
   final home = teamById(match.homeTeamId);
   final away = teamById(match.awayTeamId);
   return '${home.name} vs ${away.name}';
+}
+
+String _matchStatusLine(
+  WorldCupMatch match,
+  Team home,
+  Team away,
+  String countryCode,
+  String timezone,
+  DateTime nowUtc,
+) {
+  final timing = matchTiming(match, nowUtc: nowUtc);
+  if (timing.state == MatchTimingState.completed &&
+      match.homeScore != null &&
+      match.awayScore != null) {
+    return 'Final: ${home.code} ${match.homeScore} - ${match.awayScore} ${away.code}';
+  }
+
+  final line = viewingLine(match, countryCode, timezone);
+  if (timing.state == MatchTimingState.live) {
+    return 'Live window - $line';
+  }
+  if (timing.state == MatchTimingState.awaitingResult) {
+    return 'Result pending - $line';
+  }
+  return line;
 }

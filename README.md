@@ -17,10 +17,11 @@ The design spec lives at:
 
 ## Current Checkpoint
 
-Stage 2.8 is the current runnable Flutter checkpoint. The bundled fixture
-snapshot is refreshed through the completed early Jun 14 match window.
+Stage 2.10 is the current runnable Flutter checkpoint. The bundled fixture
+snapshot is refreshed through the completed early Jun 14 match window, and Home
+now separates recent final scores from upcoming fixtures.
 
-- Personalized Home screen that starts with profile setup instead of a dense fixture list.
+- Personalized Home screen that starts with profile setup or favorite-team context, then shows recent results and next fixtures instead of a dense fixture list.
 - Full local catalog for all 48 World Cup teams, Groups A-L, and all 72 group-stage fixtures.
 - Fixtures screen with local kickoff conversion, US viewing metadata, team notes, completed-result labels, local final-score overrides, and prototype predictions.
 - Teams screen with searchable team catalog sourced from the same local team table as the Profile favorite-team dropdown.
@@ -80,8 +81,8 @@ Verified result-refresh commands:
 ```bash
 /Users/parasgandhi/Project/temp/flutter/bin/flutter analyze
 /Users/parasgandhi/Project/temp/flutter/bin/flutter test
-/Users/parasgandhi/Project/temp/flutter/bin/flutter test tool/progress_screenshots.dart --update-goldens --dart-define=SCREENSHOT_STAGE=stage2_9
-/Users/parasgandhi/Project/temp/flutter/bin/flutter build web --no-wasm-dry-run
+/Users/parasgandhi/Project/temp/flutter/bin/flutter test tool/progress_screenshots.dart --update-goldens --dart-define=SCREENSHOT_STAGE=stage2_10
+/Users/parasgandhi/Project/temp/flutter/bin/flutter build web --no-wasm-dry-run --pwa-strategy=none
 ```
 
-Stage 2.9 screenshots are stored in `docs/screenshots/stage2_9/`.
+Stage 2.10 screenshots are stored in `docs/screenshots/stage2_10/`.

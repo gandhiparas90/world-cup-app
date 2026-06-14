@@ -16,6 +16,7 @@ docs/screenshots/
   stage2_7/
   stage2_8/
   stage2_9/
+  stage2_10/
   stage3/
 ```
 
@@ -94,3 +95,11 @@ Stage 2.9 screenshots:
 - `stage2_9/03_teams_search.png`
 - `stage2_9/04_match_detail.png`
 - `stage2_9/05_profile_saved.png`
+
+Stage 2.10 screenshots:
+
+- `stage2_10/01_home_setup.png`
+- `stage2_10/02_home_personalized.png`
+- `stage2_10/03_teams_search.png`
+- `stage2_10/04_match_detail.png`
+- `stage2_10/05_profile_saved.png`

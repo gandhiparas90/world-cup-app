@@ -43,6 +43,7 @@ void main() {
     await _setPhoneViewport(tester);
     await tester.pumpWidget(
       WorldCupMatchIqEntryPoint(
+        nowUtc: _homeSnapshotNowUtc,
         theme: MatchIqTheme.light(useGoogleFonts: false),
       ),
     );
@@ -64,6 +65,7 @@ void main() {
     await tester.pumpWidget(
       WorldCupMatchIqEntryPoint(
         userProfileRepository: profileRepository,
+        nowUtc: _homeSnapshotNowUtc,
         theme: MatchIqTheme.light(useGoogleFonts: false),
       ),
     );
@@ -204,6 +206,8 @@ void main() {
     );
   });
 }
+
+final _homeSnapshotNowUtc = DateTime.utc(2026, 6, 14, 13, 45);
 
 UserProfile _sampleProfile() {
   return UserProfile(
